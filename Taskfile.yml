@@ -1,0 +1,31 @@
+version: "3"
+
+dotenv: [".env"]
+
+tasks:
+  test:
+    cmds:
+      - echo "Not implemented"
+    silent: true
+  build:
+    cmds:
+      - poetry build
+    sources:
+      - fastapi_oidc/**
+      - poetry.lock
+    generates:
+      - dist/**
+  publish:
+    deps: [build]
+    cmds:
+      - echo "Publishing as $PYPI_USERNAME"
+      - poetry publish -u $PYPI_USERNAME -p $PYPI_PASSWORD
+    sources:
+      - dist/**
+      - poetry.lock
+      - pyproject.toml
+    status:
+      - echo "Return nonzero code if we shouldn't publish"
+  clean:
+    cmds:
+      - rm -rf ./build ./dist ./*.egg-info __pycache__
