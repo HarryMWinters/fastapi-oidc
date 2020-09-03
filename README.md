@@ -1,9 +1,10 @@
-# fastapi OIDC
+# fastapi OIDC WIP | COMING SOON
 
 Verify and decrypt 3rd party OIDC ID tokens to protect your [fastapi](https://github.com/tiangolo/fastapi) endpoints.
 
 ReadTheDocs:
-Source code:
+
+Source code: [github](https://github.com/HarryMWinters/fastapi-oidc)
 
 ## Table of Contents
 
@@ -23,9 +24,12 @@ your auth. All you need to do is verify the token and then you can extract user
 ID info from it.
 
 ```python3
-from fastapi import Depends, FastAPI
+from fastapi import Depends
+from fastapi import FastAPI
+
 # Set up our OIDC
-from fastapi_oidc import IDToken, get_auth
+from fastapi_oidc import IDToken
+from fastapi_oidc import get_auth
 
 OIDC_config = {
     "client_id": "",

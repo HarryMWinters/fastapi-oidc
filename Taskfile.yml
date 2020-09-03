@@ -5,7 +5,10 @@ dotenv: [".env"]
 tasks:
   test:
     cmds:
-      - echo "Not implemented"
+      - poetry run pytest
+        # --cov=fastapi_oidc \
+        # --cov-report=term-missing
+        # --cov-report=xml tests ${@}
     silent: true
   build:
     cmds:
@@ -13,6 +16,7 @@ tasks:
     sources:
       - fastapi_oidc/**
       - poetry.lock
+      - pyproject.toml
     generates:
       - dist/**
   publish:
@@ -20,12 +24,17 @@ tasks:
     cmds:
       - echo "Publishing as $PYPI_USERNAME"
       - poetry publish -u $PYPI_USERNAME -p $PYPI_PASSWORD
-    sources:
-      - dist/**
-      - poetry.lock
-      - pyproject.toml
-    status:
-      - echo "Return nonzero code if we shouldn't publish"
+    # sources:
+    #   # TODO This is erroneously registering as up to date
+    #   # After a build has been run :( )
+    #   - dist/**
+    #   - poetry.lock
+    #   - pyproject.toml
+    # status:
+    #   - echo "Return nonzero code if we shouldn't publish"
   clean:
     cmds:
       - rm -rf ./build ./dist ./*.egg-info __pycache__
+  build_docs:
+    cmds:
+      - echo "Not implemented"
