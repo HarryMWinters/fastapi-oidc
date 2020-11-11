@@ -1,0 +1,29 @@
+# Run tests and check pre-commit
+name: Test
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Task
+        uses: Arduino/actions/setup-taskfile@master
+      - name: Run pre-commit
+        run: task pre-commit-ci
+      - name: Run test
+        run: task unit-test
