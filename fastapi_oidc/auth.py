@@ -48,13 +48,13 @@ def get_auth(
         issuer: str = issuer,
         signature_cache_ttl: int = signature_cache_ttl,
     ) -> IDToken:
-        """Validate and parse OIDC ID token against issuer in config. 
-        Note this function caches the signatures and algorithms of the issuing server 
+        """Validate and parse OIDC ID token against issuer in config.
+        Note this function caches the signatures and algorithms of the issuing server
         for signature_cache_ttl seconds.
-        
+
         return:
             IDToken:
-        
+
         raises:
             HTTPException(status_code=401, detail=f"Unauthorized: {err}")
         """

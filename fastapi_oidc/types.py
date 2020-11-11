@@ -12,8 +12,7 @@ class OIDCConfig(BaseSettings):
 
 
 class IDToken(BaseModel):
-    """
-    """
+    """"""
 
     # TODO Verify the minimum and maximum claim set for ID Tokens.
     name: str

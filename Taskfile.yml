@@ -3,7 +3,13 @@ version: "3"
 dotenv: [".env"]
 
 tasks:
-  test:
+  install-poetry:
+    cmds:
+      - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+    status:
+      - poetry --version
+  unit-test:
+    deps: [install-poetry]
     cmds:
       - poetry run pytest
         # --cov=fastapi_oidc \
@@ -11,6 +17,7 @@ tasks:
         # --cov-report=xml tests ${@}
     silent: true
   build:
+    deps: [install-poetry]
     cmds:
       - poetry build
     sources:
@@ -35,6 +42,21 @@ tasks:
   clean:
     cmds:
       - rm -rf ./build ./dist ./*.egg-info __pycache__
+  pre-commit-ci:
+    deps: [install-pre-commit, init-pre-commit]
+    cmds:
+      - pre-commit run --all-files
+  install-pre-commit:
+    cmds:
+      - pip install pre-commit
+    status:
+      - which pre-commit
+  init-pre-commit:
+    deps: [install-pre-commit]
+    cmds:
+      - pre-commit install
+    generates:
+    - .git/hooks/pre-commit
   build_docs:
     cmds:
       - echo "Not implemented"
