@@ -8,6 +8,8 @@ tasks:
       - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
     status:
       - poetry --version
+    generates:
+      - $HOME/.poetry/env
   unit-test:
     deps: [install-poetry, create-virtual-env]
     cmds:
