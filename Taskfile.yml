@@ -9,13 +9,17 @@ tasks:
     status:
       - poetry --version
   unit-test:
-    deps: [install-poetry]
+    deps: [install-poetry, create-virtual-env]
     cmds:
       - source $HOME/.poetry/env && poetry run pytest
         # --cov=fastapi_oidc \
         # --cov-report=term-missing
         # --cov-report=xml tests ${@}
     silent: true
+  create-virtual-env:
+    deps: [install-poetry]
+    cmds:
+      - source $HOME/.poetry/env && poetry install
   build:
     deps: [install-poetry]
     cmds:
