@@ -11,6 +11,7 @@ tasks:
   unit-test:
     deps: [install-poetry]
     cmds:
+      - source $HOME/.poetry/env
       - poetry run pytest
         # --cov=fastapi_oidc \
         # --cov-report=term-missing
