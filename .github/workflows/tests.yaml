@@ -23,6 +23,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install Task
         uses: Arduino/actions/setup-taskfile@master
+        with:
+          version: 3.x
       - name: Run pre-commit
         run: task pre-commit-ci
       - name: Run test
