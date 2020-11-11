@@ -48,7 +48,8 @@ tasks:
       - pre-commit run --all-files
   install-pre-commit:
     cmds:
-      - pip install pre-commit
+      - curl -O https://github.com/pre-commit/pre-commit/releases/download/v2.8.2/pre-commit-2.8.2.pyz 
+      - python3 pre-commit-2.8.2.pyz
     status:
       - which pre-commit
   init-pre-commit:
