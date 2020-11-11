@@ -43,19 +43,19 @@ tasks:
     cmds:
       - rm -rf ./build ./dist ./*.egg-info __pycache__
   pre-commit-ci:
-    deps: [install-pre-commit, init-pre-commit]
+    deps: [install-pre-commit-ci, init-pre-commit-ci]
     cmds:
-      - pre-commit run --all-files
-  install-pre-commit:
+      - python3 pre-commit-2.8.2.pyz run --all-files
+  install-pre-commit-ci:
     cmds:
       - curl -OL https://github.com/pre-commit/pre-commit/releases/download/v2.8.2/pre-commit-2.8.2.pyz 
       - python3 pre-commit-2.8.2.pyz
     status:
       - which pre-commit
-  init-pre-commit:
-    deps: [install-pre-commit]
+  init-pre-commit-ci:
+    deps: [install-pre-commit-ci]
     cmds:
-      - pre-commit install
+      - python3 pre-commit-2.8.2.pyz install
     generates:
     - .git/hooks/pre-commit
   build_docs:
