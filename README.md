@@ -2,7 +2,7 @@
 
 # FastAPI OIDC
 
-![Tests](https://github.com/harrymwinters/fastapi-oidc/workflows/test/badge.svg)
+![Tests](https://github.com/HarryMWinters/fastapi-oidc/workflows/Test/badge.svg)
 
 Verify and decrypt 3rd party OIDC ID tokens to protect your [fastapi](https://github.com/tiangolo/fastapi) endpoints.
 
