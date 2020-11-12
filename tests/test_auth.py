@@ -25,15 +25,20 @@ class Fixtures:
         crypto_serialization.PrivateFormat.PKCS8,
         crypto_serialization.NoEncryption(),
     )
-    TESTING_PUBLIC_KEY = _key.public_key().public_bytes(
-        crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH
+    TESTING_PUBLIC_KEY = (
+        _key.public_key()
+        .public_bytes(
+            crypto_serialization.Encoding.OpenSSH,
+            crypto_serialization.PublicFormat.OpenSSH,
+        )
+        .decode("UTF-8")
     )
 
 
 TEST_CONFIG = {
-    "client_id": "Congenital Optimist",
-    "base_authorization_server_uri": "What Are The Civilian Applications?",
-    "issuer": "Just Testing",
+    "client_id": "CongenitalOptimist",
+    "base_authorization_server_uri": "WhatAreTheCivilianApplications?",
+    "issuer": "PokeItWithAStick",
     "signature_cache_ttl": 6e3,
 }
 
