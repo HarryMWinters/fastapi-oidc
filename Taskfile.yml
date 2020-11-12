@@ -3,14 +3,27 @@ version: "3"
 dotenv: [".env"]
 
 tasks:
-  test:
+  install-poetry:
     cmds:
-      - poetry run pytest
+      - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+    status:
+      - poetry --version
+    generates:
+      - $HOME/.poetry/env
+  unit-test:
+    deps: [install-poetry, create-virtual-env]
+    cmds:
+      - source $HOME/.poetry/env && poetry run pytest
         # --cov=fastapi_oidc \
         # --cov-report=term-missing
         # --cov-report=xml tests ${@}
     silent: true
+  create-virtual-env:
+    deps: [install-poetry]
+    cmds:
+      - source $HOME/.poetry/env && poetry install
   build:
+    deps: [install-poetry]
     cmds:
       - poetry build
     sources:
@@ -35,6 +48,22 @@ tasks:
   clean:
     cmds:
       - rm -rf ./build ./dist ./*.egg-info __pycache__
+  pre-commit-ci:
+    deps: [install-pre-commit-ci, init-pre-commit-ci]
+    cmds:
+      - python3 pre-commit-2.8.2.pyz run --all-files
+  install-pre-commit-ci:
+    cmds:
+      - curl -OL https://github.com/pre-commit/pre-commit/releases/download/v2.8.2/pre-commit-2.8.2.pyz 
+      - python3 pre-commit-2.8.2.pyz
+    status:
+      - which pre-commit
+  init-pre-commit-ci:
+    deps: [install-pre-commit-ci]
+    cmds:
+      - python3 pre-commit-2.8.2.pyz install
+    generates:
+    - .git/hooks/pre-commit
   build_docs:
     cmds:
       - echo "Not implemented"

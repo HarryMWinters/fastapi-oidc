@@ -9,7 +9,7 @@ def configure(*_, cache_ttl: int):
     @cached(TTLCache(1, cache_ttl), key=lambda d: d["jwks_uri"])
     def get_authentication_server_public_keys(OIDC_spec: Dict):
         """
-        Retrieve the public keys used by the authentication server 
+        Retrieve the public keys used by the authentication server
         for signing OIDC ID tokens.
         """
         keys_uri = OIDC_spec["jwks_uri"]
