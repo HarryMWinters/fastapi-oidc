@@ -2,6 +2,12 @@
 .task
 scratch.py
 
+# Sphinx docs
+docs/_build
+docs/_static
+docs/_templates
+docs/make.bat
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
