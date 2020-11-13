@@ -4,13 +4,11 @@
 
 ![Tests](https://github.com/HarryMWinters/fastapi-oidc/workflows/Test/badge.svg)
 
-[![Documentation Status](https://readthedocs.org/projects/fastapi-oidc/badge/?version=latest)](https://fastapi-oidc.readthedocs.io/en/latest/?badge=latest)
-
 :warning: **See [this issue](https://github.com/HarryMWinters/fastapi-oidc/issues/1) for simple role-your-own example of checking OIDC tokens.**
 
 Verify and decrypt 3rd party OIDC ID tokens to protect your [fastapi](https://github.com/tiangolo/fastapi) endpoints.
 
-ReadTheDocs:
+Docs: [gh-Pages](https://harrymwinters.github.io/fastapi-oidc/)
 
 Source code: [Github](https://github.com/HarryMWinters/fastapi-oidc)
 
