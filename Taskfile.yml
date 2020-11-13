@@ -4,13 +4,16 @@ dotenv: [".env"]
 
 tasks:
   install-poetry:
+    desc: "Install poetry package manager."
     cmds:
       - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
     status:
       - poetry --version
     generates:
       - $HOME/.poetry/env
+
   unit-test:
+    desc: "Run unit tests"
     deps: [install-poetry, create-virtual-env]
     cmds:
       - source $HOME/.poetry/env && poetry run pytest
@@ -19,10 +22,12 @@ tasks:
         # --cov-report=xml tests ${@}
     silent: true
   create-virtual-env:
+    desc: "Create poetry virtual env."
     deps: [install-poetry]
     cmds:
       - source $HOME/.poetry/env && poetry install
   build:
+    desc: "Build python package for publication."
     deps: [install-poetry]
     cmds:
       - poetry build
@@ -33,6 +38,7 @@ tasks:
     generates:
       - dist/**
   publish:
+    desc: "Push package to PIPy"
     deps: [build]
     cmds:
       - echo "Publishing as $PYPI_USERNAME"
@@ -46,24 +52,32 @@ tasks:
     # status:
     #   - echo "Return nonzero code if we shouldn't publish"
   clean:
+    desc: "Remove artifacts and caches."
     cmds:
       - rm -rf ./build ./dist ./*.egg-info __pycache__
   pre-commit-ci:
+    desc: "Install and init pre-commits."
     deps: [install-pre-commit-ci, init-pre-commit-ci]
     cmds:
       - python3 pre-commit-2.8.2.pyz run --all-files
   install-pre-commit-ci:
+    desc: "Install pre-commit without dependencies."
     cmds:
       - curl -OL https://github.com/pre-commit/pre-commit/releases/download/v2.8.2/pre-commit-2.8.2.pyz 
       - python3 pre-commit-2.8.2.pyz
     status:
       - which pre-commit
+
   init-pre-commit-ci:
+    desc: "Init pre-commit."
     deps: [install-pre-commit-ci]
     cmds:
       - python3 pre-commit-2.8.2.pyz install
     generates:
     - .git/hooks/pre-commit
+
   build_docs:
+    desc: "Build sphinc docs in /docs"
+    deps: [create-virtual-env]
     cmds:
-      - echo "Not implemented"
+      - cd docs && poetry run make html

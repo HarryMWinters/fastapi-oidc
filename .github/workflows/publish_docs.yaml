@@ -1,0 +1,28 @@
+name: Publish to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v1
+
+      - name: Install Task
+        uses: Arduino/actions/setup-taskfile@master
+        with:
+          version: 3.x
+
+      - name: Generate your awesome content
+        run: task build_docs
+
+      - name: Publish generated content to GitHub Pages
+        uses: tsunematsu21/actions-publish-gh-pages@v1.0.1
+        with:
+          dir: docs/html
+          token: ${{ secrets.ACCESS_TOKEN }}
