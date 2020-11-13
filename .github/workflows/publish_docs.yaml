@@ -26,4 +26,8 @@ jobs:
         uses: tsunematsu21/actions-publish-gh-pages@v1.0.1
         with:
           dir: docs/html
+          branch: master
+          repo: HarryMWinters/fastapi-oidc
+          name: AutoDoc
+          # email: harrymcwinters+fastapiautodoc@gmail.com
           token: ${{ secrets.ACCESS_TOKEN }}
