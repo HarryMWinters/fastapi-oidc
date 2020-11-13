@@ -1,11 +1,15 @@
 Welcome to fastapi-oidc's documentation!
 ========================================
 
+Verify ID Tokens Issued by Third Party
+
+This is great if you just want to use something like Okta or google to handle
+your auth. All you need to do is verify the token and then you can extract
+user ID info from it.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-
 
 Indices and tables
 ==================
@@ -17,13 +21,9 @@ Indices and tables
 Installation
 ------------
 
+.. code-block:: bash
+
    pip install fastapi-oidc
-
-#### Verify ID Tokens Issued by Third Party
-
-This is great if you just want to use something like Okta or google to handle
-your auth. All you need to do is verify the token and then you can extract user ID info from it.
-
 
 Example
 -------
