@@ -8,7 +8,7 @@
 
 Verify and decrypt 3rd party OIDC ID tokens to protect your [fastapi](https://github.com/tiangolo/fastapi) endpoints.
 
-Docs: [gh-Pages](https://harrymwinters.github.io/fastapi-oidc/)
+Docs: [ReadTheDocs](https://fastapi-oidc.readthedocs.io/en/latest/)
 
 Source code: [Github](https://github.com/HarryMWinters/fastapi-oidc)
 
