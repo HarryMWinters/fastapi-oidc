@@ -75,3 +75,11 @@ tasks:
       - python3 pre-commit-2.8.2.pyz install
     generates:
     - .git/hooks/pre-commit
+
+  build_docs:
+    desc: "Build sphinc docs in /docs"
+    deps: [create-virtual-env]
+    cmds:
+      - |
+        cd docs && 
+        source $HOME/.poetry/env && poetry run make html
