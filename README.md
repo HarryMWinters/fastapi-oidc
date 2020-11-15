@@ -8,10 +8,8 @@
        <img src="https://github.com/HarryMWinters/fastapi-oidc/workflows/Test/badge.svg"  
             alt="Test">
     </a>
-    <a href="https://readthedocs.org/projects/fastapi-oidc/badge/?version=latest"
-       target="_blank">
-        <img src="https://fastapi-oidc.readthedocs.io/en/latest/?badge=latest"
-             alt="Documentation">
+    <a href='https://fastapi-oidc.readthedocs.io/en/latest/?badge=latest'>
+        <img src='https://readthedocs.org/projects/fastapi-oidc/badge/?version=latest' alt='Documentation Status' />
     </a>
     <a href="https://pypi.org/project/fastapi-oidc" 
        target="_blank">
