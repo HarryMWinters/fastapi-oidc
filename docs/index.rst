@@ -24,6 +24,12 @@ Installation
 .. code-block:: bash
 
    pip install fastapi-oidc
+   
+Or, if you you're feeling hip...
+
+.. code-block:: bash
+
+   poetry add fastapi-oidc
 
 Example
 -------
@@ -55,11 +61,15 @@ Basic configuration for verifying OIDC tokens.
       return {"Hello": "World", "user_email": id_token.email}
 
 
-API References
---------------
+API Reference
+=============
 
-.. automodule:: fastapi_oidc
+Auth
+----
+
+.. automodule:: fastapi_oidc.auth
    :members:
+
 
 Discovery
 ---------

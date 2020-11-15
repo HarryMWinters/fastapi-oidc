@@ -2,15 +2,31 @@
 
 # FastAPI OIDC
 
-![Tests](https://github.com/HarryMWinters/fastapi-oidc/workflows/Test/badge.svg)
+<p align="center">
+    <a href="https://github.com/HarryMWinters/fastapi-oidc/actions?query=workflow%3ATest"
+       target="_blank">
+       <img src="https://github.com/HarryMWinters/fastapi-oidc/workflows/Test/badge.svg"  
+            alt="Test">
+    </a>
+    <a href='https://fastapi-oidc.readthedocs.io/en/latest/?badge=latest'>
+        <img src='https://readthedocs.org/projects/fastapi-oidc/badge/?version=latest' alt='Documentation Status' />
+    </a>
+    <a href="https://pypi.org/project/fastapi-oidc" 
+       target="_blank">
+       <img src="https://img.shields.io/pypi/v/fastapi-oidc?color=%2334D058&label=pypi%20package" 
+            alt="Package version">
+    </a>
+</p>
+
+---
 
 :warning: **See [this issue](https://github.com/HarryMWinters/fastapi-oidc/issues/1) for simple role-your-own example of checking OIDC tokens.**
 
 Verify and decrypt 3rd party OIDC ID tokens to protect your [fastapi](https://github.com/tiangolo/fastapi) endpoints.
 
-Docs: [gh-Pages](https://harrymwinters.github.io/fastapi-oidc/)
+**Documentation:** [ReadTheDocs](https://fastapi-oidc.readthedocs.io/en/latest/)
 
-Source code: [Github](https://github.com/HarryMWinters/fastapi-oidc)
+**Source code:** [Github](https://github.com/HarryMWinters/fastapi-oidc)
 
 ### Installation
 

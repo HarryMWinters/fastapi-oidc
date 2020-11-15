@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/HarryMWinters/fastapi-oidc"
 repository = "https://github.com/HarryMWinters/fastapi-oidc"
-documentation = "https://github.com/HarryMWinters/fastapi-oidc"
+documentation = "https://fastapi-oidc.readthedocs.io/en/latest/"
 
 [tool.poetry.dependencies]
 python = "^3.8"
