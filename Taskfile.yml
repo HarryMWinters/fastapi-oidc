@@ -3,29 +3,42 @@ version: "3"
 dotenv: [".env"]
 
 tasks:
+  
+  ci:
+    desc: "Run code analyzers from pre-commit and unit tests"
+    deps: [install-poetry, create-virtual-env]
+    cmds:
+      - task: unit
+      - task: lint
+
+  lint:
+    desc: "Install and init pre-commits."
+    deps: [install-poetry, create-virtual-env]
+    cmds:
+      - poetry run pre-commit run --all-files
+
+  unit:
+    desc: "Run unit tests"
+    deps: [install-poetry, create-virtual-env]
+    cmds:
+      - poetry run pytest
+    silent: true
+
   install-poetry:
     desc: "Install poetry package manager."
     cmds:
-      - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+      - pip install poetry
     status:
       - poetry --version
     generates:
       - $HOME/.poetry/env
 
-  unit-test:
-    desc: "Run unit tests"
-    deps: [install-poetry, create-virtual-env]
-    cmds:
-      - source $HOME/.poetry/env && poetry run pytest
-        # --cov=fastapi_oidc \
-        # --cov-report=term-missing
-        # --cov-report=xml tests ${@}
-    silent: true
   create-virtual-env:
     desc: "Create poetry virtual env."
     deps: [install-poetry]
     cmds:
-      - source $HOME/.poetry/env && poetry install
+      - poetry install
+
   build:
     desc: "Build python package for publication."
     deps: [install-poetry]
@@ -37,6 +50,7 @@ tasks:
       - pyproject.toml
     generates:
       - dist/**
+
   publish:
     desc: "Push package to PIPy"
     deps: [build]
@@ -51,22 +65,11 @@ tasks:
     #   - pyproject.toml
     # status:
     #   - echo "Return nonzero code if we shouldn't publish"
+
   clean:
     desc: "Remove artifacts and caches."
     cmds:
       - rm -rf ./build ./dist ./*.egg-info __pycache__
-  pre-commit-ci:
-    desc: "Install and init pre-commits."
-    deps: [install-pre-commit-ci, init-pre-commit-ci]
-    cmds:
-      - python3 pre-commit-2.8.2.pyz run --all-files
-  install-pre-commit-ci:
-    desc: "Install pre-commit without dependencies."
-    cmds:
-      - curl -OL https://github.com/pre-commit/pre-commit/releases/download/v2.8.2/pre-commit-2.8.2.pyz 
-      - python3 pre-commit-2.8.2.pyz
-    status:
-      - which pre-commit
 
   init-pre-commit-ci:
     desc: "Init pre-commit."
@@ -77,7 +80,7 @@ tasks:
     - .git/hooks/pre-commit
 
   build_docs:
-    desc: "Build sphinc docs in /docs"
+    desc: "Build sphinx docs in /docs"
     deps: [create-virtual-env]
     cmds:
       - |

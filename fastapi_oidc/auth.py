@@ -39,7 +39,7 @@ def get_auth(
 ) -> Callable[[str], IDToken]:
     """Take configurations and return the authenticate_user function.
 
-    This function should only be invoked once at the begging of your
+    This function should only be invoked once at the beggining of your
     server code. The function it returns should be used to check user credentials.
 
     Args:
@@ -110,7 +110,7 @@ def get_auth(
 
 # This is a dummy method for sphinx docs. DO NOT User.
 # TODO Find a way to doc higher order functions w/ sphinx.
-def authenticate_user(auth_header: str) -> IDToken:
+def authenticate_user(auth_header: str) -> IDToken:  # type: ignore
     """
     Validate and parse OIDC ID token against issuer in config.
     Note this function caches the signatures and algorithms of the issuing server
