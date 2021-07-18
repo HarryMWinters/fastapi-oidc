@@ -1,8 +1,6 @@
-# WIP | COMING SOON
-
 # FastAPI OIDC
 
-<p align="center">
+<p align="left">
     <a href="https://github.com/HarryMWinters/fastapi-oidc/actions?query=workflow%3ATest"
        target="_blank">
        <img src="https://github.com/HarryMWinters/fastapi-oidc/workflows/Test/badge.svg"  
@@ -28,11 +26,11 @@ Verify and decrypt 3rd party OIDC ID tokens to protect your [fastapi](https://gi
 
 **Source code:** [Github](https://github.com/HarryMWinters/fastapi-oidc)
 
-### Installation
+## Installation
 
 `pip install fastapi-oidc`
 
-#### Verify ID Tokens Issued by Third Party
+### Verify ID Tokens Issued by Third Party
 
 This is great if you just want to use something like Okta or google to handle
 your auth. All you need to do is verify the token and then you can extract user ID info from it.
