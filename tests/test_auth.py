@@ -36,6 +36,7 @@ class Fixtures:
 
 TEST_CONFIG = {
     "client_id": "CongenitalOptimist",
+    "audience": "NeverAgain",
     "base_authorization_server_uri": "WhatAreTheCivilianApplications?",
     "issuer": "PokeItWithAStick",
     "signature_cache_ttl": 6e3,
@@ -46,12 +47,13 @@ def _make_token(
     email: str,
     private_key: str = Fixtures.TESTING_PRIVATE_KEY,
     client_id: str = str(TEST_CONFIG["client_id"]),
+    audience: str = str(TEST_CONFIG["audience"]),
     issuer: str = str(TEST_CONFIG["issuer"]),
 ) -> str:
     now = int(time.time())
     return jwt.encode(
         {
-            "aud": client_id,
+            "aud": audience,
             "iss": issuer,
             "email": email,
             "name": "SweetAndFullOfGrace",
