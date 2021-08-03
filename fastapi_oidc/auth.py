@@ -16,7 +16,7 @@ Usage
         return f"Hello {name}"
 """
 
-from typing import Callable
+from typing import Callable, Optional
 
 from fastapi import Depends
 from fastapi import HTTPException
