@@ -1,6 +1,7 @@
 .vscode
 .task
 scratch.py
+.env
 
 # Sphinx docs
 docs/_build
