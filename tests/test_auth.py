@@ -78,7 +78,7 @@ def _make_token(
         },
         private_key,
         algorithm="RS256",
-    )
+    ).decode("UTF-8")
 
 # Make a token where audience is client_id
 def _make_token_no_aud(
@@ -108,7 +108,7 @@ def _make_token_no_aud(
         },
         private_key,
         algorithm="RS256",
-    )
+    ).decode("UTF-8")
 
 def test__authenticate_user(monkeypatch):
     def mock_discovery(*args, **kwargs):
