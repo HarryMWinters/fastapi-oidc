@@ -50,6 +50,7 @@ TEST_CONFIG_NO_AUD = {
     "signature_cache_ttl": 6e3,
 }
 
+
 def _make_token(
     email: str,
     private_key: str = Fixtures.TESTING_PRIVATE_KEY,
@@ -79,6 +80,7 @@ def _make_token(
         private_key,
         algorithm="RS256",
     ).decode("UTF-8")
+
 
 # Make a token where audience is client_id
 def _make_token_no_aud(
@@ -110,6 +112,7 @@ def _make_token_no_aud(
         algorithm="RS256",
     ).decode("UTF-8")
 
+
 def test__authenticate_user(monkeypatch):
     def mock_discovery(*args, **kwargs):
         class functions:
@@ -125,6 +128,7 @@ def test__authenticate_user(monkeypatch):
     authenticate_user = auth.get_auth(**TEST_CONFIG)
     IDToken = authenticate_user(auth_header=f"Bearer {token}")
     assert IDToken.email == email  # nosec
+
 
 # Ensure that when no audience is supplied, that the audience defaults to client ID
 def test__authenticate_user_no_aud(monkeypatch):
