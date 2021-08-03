@@ -17,6 +17,7 @@ Usage
 """
 
 from typing import Callable
+from typing import Optional
 
 from fastapi import Depends
 from fastapi import HTTPException
@@ -33,6 +34,7 @@ from fastapi_oidc.types import IDToken
 def get_auth(
     *_,
     client_id: str,
+    audience: Optional[str] = None,
     base_authorization_server_uri: str,
     issuer: str,
     signature_cache_ttl: int,
@@ -44,6 +46,8 @@ def get_auth(
 
     Args:
         client_id (str): This string is provided when you register with your resource server.
+        audience (str): (Optional) The audience string configured by your auth server.
+            If not set defaults to client_id
         base_authorization_server_uri(URL): Everything before /.wellknow in your auth server URL.
             I.E. https://dev-123456.okta.com
         issuer (URL): Same as base_authorization. This is used to generating OpenAPI3.0 docs which
@@ -94,8 +98,7 @@ def get_auth(
                 id_token,
                 key,
                 algorithms,
-                # TODO Check that client ID will always equal audience
-                audience=client_id,
+                audience=audience if audience else client_id,
                 issuer=issuer,
                 # Disabled at_hash check since we aren't using the access token
                 options={"verify_at_hash": False},
