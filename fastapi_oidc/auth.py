@@ -18,6 +18,7 @@ Usage
 
 from typing import Callable
 from typing import Optional
+from typing import Type
 
 from fastapi import Depends
 from fastapi import HTTPException
@@ -28,6 +29,7 @@ from jose import jwt
 from jose.exceptions import JWTClaimsError
 
 from fastapi_oidc import discovery
+from fastapi_oidc.exceptions import TokenSpecificationError
 from fastapi_oidc.types import IDToken
 
 
@@ -38,6 +40,7 @@ def get_auth(
     base_authorization_server_uri: str,
     issuer: str,
     signature_cache_ttl: int,
+    token_type: Type[IDToken] = IDToken,
 ) -> Callable[[str], IDToken]:
     """Take configurations and return the authenticate_user function.
 
@@ -45,24 +48,35 @@ def get_auth(
     server code. The function it returns should be used to check user credentials.
 
     Args:
-        client_id (str): This string is provided when you register with your resource server.
+        client_id (str): This string is provided when you register with your resource
+            server.
+        base_authorization_server_uri(URL): Everything before /.wellknow in your auth
+            server URL. I.E. https://dev-123456.okta.com
+        issuer (URL): Same as base_authorization. This is used to generating OpenAPI3.0
+            docs which is broken (in OpenAPI/FastAPI) right now.
+        signature_cache_ttl (int): How many seconds your app should cache the
+            authorization server's public signatures.
         audience (str): (Optional) The audience string configured by your auth server.
             If not set defaults to client_id
-        base_authorization_server_uri(URL): Everything before /.wellknow in your auth server URL.
-            I.E. https://dev-123456.okta.com
-        issuer (URL): Same as base_authorization. This is used to generating OpenAPI3.0 docs which
-            is broken (in OpenAPI/FastAPI) right now.
-        signature_cache_ttl (int): How many seconds your app should cache the authorization
-            server's public signatures.
+        token_type (IDToken or subclass): (Optional) An optional class to be returned by
+            the authenticate_user function.
 
 
     Returns:
-        func: authenticate_user(auth_header: str)
+        func: authenticate_user(auth_header: str) -> IDToken (or token_type)
 
     Raises:
         Nothing intentional
     """
-    # As far as I can tell this does two things.
+
+    if not issubclass(token_type, IDToken):
+        raise TokenSpecificationError(
+            "Invalid argument for token_type. "
+            "Token type must be a subclass of fastapi_oidc.type.IDToken. "
+            f"Received {token_type=}"
+        )
+
+    # As far as I can tell the oauth2_scheme does two things.
     # 1. Extracts and returns the Authorization header.
     # 2. Integrates with the OpenAPI3.0 doc generation in FastAPI.
     #    This integration doesn't matter much now since OpenAPI
@@ -79,8 +93,8 @@ def get_auth(
         for signature_cache_ttl seconds.
 
         Args:
-            auth_header (str): Base64 encoded OIDC Token. This is invoked behind the scenes
-                by Depends.
+            auth_header (str): Base64 encoded OIDC Token. This is invoked behind the
+                scenes by Depends.
 
         Return:
             IDToken (types.IDToken):
@@ -103,27 +117,9 @@ def get_auth(
                 # Disabled at_hash check since we aren't using the access token
                 options={"verify_at_hash": False},
             )
-            return IDToken.parse_obj(token)
+            return token_type.parse_obj(token)
 
         except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
             raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
 
     return authenticate_user
-
-
-# This is a dummy method for sphinx docs. DO NOT User.
-# TODO Find a way to doc higher order functions w/ sphinx.
-def authenticate_user(auth_header: str) -> IDToken:  # type: ignore
-    """
-    Validate and parse OIDC ID token against issuer in config.
-    Note this function caches the signatures and algorithms of the issuing server
-    for signature_cache_ttl seconds.
-
-    Args:
-        auth_header (str): Base64 encoded OIDC Token. This is invoked behind the scenes
-            by Depends.
-
-    Return:
-        IDToken (types.IDToken):
-    """
-    pass
