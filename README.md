@@ -18,9 +18,11 @@
 
 ---
 
-:warning: **See [this issue](https://github.com/HarryMWinters/fastapi-oidc/issues/1) for simple role-your-own example of checking OIDC tokens.**
+:warning: **See [this issue](https://github.com/HarryMWinters/fastapi-oidc/issues/1) for
+simple role-your-own example of checking OIDC tokens.**
 
-Verify and decrypt 3rd party OIDC ID tokens to protect your [fastapi](https://github.com/tiangolo/fastapi) endpoints.
+Verify and decrypt 3rd party OIDC ID tokens to protect your
+[fastapi](https://github.com/tiangolo/fastapi) endpoints.
 
 **Documentation:** [ReadTheDocs](https://fastapi-oidc.readthedocs.io/en/latest/)
 
@@ -30,10 +32,13 @@ Verify and decrypt 3rd party OIDC ID tokens to protect your [fastapi](https://gi
 
 `pip install fastapi-oidc`
 
+## Usage
+
 ### Verify ID Tokens Issued by Third Party
 
 This is great if you just want to use something like Okta or google to handle
-your auth. All you need to do is verify the token and then you can extract user ID info from it.
+your auth. All you need to do is verify the token and then you can extract user ID info
+from it.
 
 ```python3
 from fastapi import Depends
@@ -59,4 +64,25 @@ app = FastAPI()
 @app.get("/protected")
 def protected(id_token: IDToken = Depends(authenticate_user)):
     return {"Hello": "World", "user_email": id_token.email}
+```
+
+#### Using your own tokens
+
+The IDToken class will accept any number of extra field but if you want to craft your
+own token class and validation that's accounted for too.
+
+```python3
+class CustomIDToken(fastapi_oidc.IDToken):
+    custom_field: str
+    custom_default: float = 3.14
+
+
+authenticate_user: Callable = get_auth(**OIDC_config, token_type=CustomIDToken)
+
+app = FastAPI()
+
+
+@app.get("/protected")
+def protected(id_token: CustomIDToken = Depends(authenticate_user)):
+    return {"Hello": "World", "user_email": id_token.custom_default}
 ```
