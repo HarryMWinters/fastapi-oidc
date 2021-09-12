@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module for validating OIDC ID Tokens. Configured via config.py 
+Module for validating OIDC ID Tokens.
 
 Usage
 =====
@@ -8,7 +8,7 @@ Usage
 .. code-block:: python3
 
     # This assumes you've already configured get_auth in your_app.py
-    from you_app.auth import authenticate_user
+    from your_app.auth import authenticate_user
 
     @app.get("/auth")
     def test_auth(authenticated_user: AuthenticatedUser = Depends(authenticate_user)):
@@ -17,8 +17,8 @@ Usage
 """
 
 from typing import Callable
+from typing import Dict
 from typing import Optional
-from typing import Type, Dict
 
 from fastapi import Depends
 from fastapi import HTTPException
@@ -27,7 +27,6 @@ from jose import ExpiredSignatureError
 from jose import JWTError
 from jose import jwt
 from jose.exceptions import JWTClaimsError
-from jose.jws import verify
 
 from fastapi_oidc import discovery
 

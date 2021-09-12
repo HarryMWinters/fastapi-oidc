@@ -60,7 +60,7 @@ app = FastAPI()
 discovery_url = "http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration"
 issuer = "http://localhost:8080/auth/realms/my-realm"
 
-authenticated_user = get_auth(
+authenticate_user = get_auth(
     discovery_url=discovery_url,
     issuer=issuer,  # optional, verification only
     audience="my-service",  # optional, verification only
@@ -70,9 +70,9 @@ authenticated_user = get_auth(
 
 @app.get("/protected")
 def protected(
-    user: IDToken = Depends(authenticated_user),
+    authenticated_user: IDToken = Depends(authenticate_user),
 ):
-    return user
+    return authenticated_user
 ```
 
 ### Optional: Predefined and custom validation of tokens
@@ -86,8 +86,8 @@ from fastapi_oidc.types import OktaIDToken
 
 
 @app.get("/protected")
-def protected(id_token: OktaIDToken = Depends(authenticate_user)):
-    return id_token
+def protected(authenticated_user: OktaIDToken = Depends(authenticate_user)):
+    return authenticated_user
 ```
 
 Custom token:
@@ -101,8 +101,8 @@ class CustomIDToken(IDToken):
 
 
 @app.get("/protected")
-def protected(id_token: CustomIDToken = Depends(authenticate_user)):
-    return id_token
+def protected(authenticated_user: CustomIDToken = Depends(authenticate_user)):
+    return authenticated_user
 ```
 
 ### FastAPI + Keycloak

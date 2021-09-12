@@ -35,8 +35,7 @@ def test__authenticate_user_no_audience(
     token = token_without_audience
 
     authenticate_user = auth.get_auth(**no_audience_config)
-
-    id_token = authenticate_user(auth_header=f"Bearer {token}")
+    authenticate_user(auth_header=f"Bearer {token}")
 
 
 def test__authenticate_user_returns_custom_tokens(
@@ -51,8 +50,6 @@ def test__authenticate_user_returns_custom_tokens(
 
     authenticate_user = auth.get_auth(**no_audience_config)
 
-    custom_token = CustomToken(
-        **authenticate_user(auth_header=f"Bearer {token}")
-    )
+    custom_token = CustomToken(**authenticate_user(auth_header=f"Bearer {token}"))
 
     assert custom_token.custom_field == "OnlySlightlyBent"

@@ -50,7 +50,7 @@ Basic configuration for verifying OIDC tokens.
    discovery_url = "http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration"
    issuer = "http://localhost:8080/auth/realms/my-realm"
 
-   authenticated_user = get_auth(
+   authenticate_user = get_auth(
       discovery_url=discovery_url,
       issuer=issuer,  # optional, verification only
       audience="my-service",  # optional, verification only
@@ -60,7 +60,7 @@ Basic configuration for verifying OIDC tokens.
 
    @app.get("/protected")
    def protected(
-      user: IDToken = Depends(authenticated_user),
+      user: IDToken = Depends(authenticate_user),
    ):
       return user
 
