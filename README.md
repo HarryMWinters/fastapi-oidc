@@ -18,71 +18,102 @@
 
 ---
 
-:warning: **See [this issue](https://github.com/HarryMWinters/fastapi-oidc/issues/1) for
-simple role-your-own example of checking OIDC tokens.**
-
-Verify and decrypt 3rd party OIDC ID tokens to protect your
+Verify and decrypt 3rd party OpenID Connect tokens to protect your
 [fastapi](https://github.com/tiangolo/fastapi) endpoints.
 
-**Documentation:** [ReadTheDocs](https://fastapi-oidc.readthedocs.io/en/latest/)
+Easily used with authenticators such as:
+- [Keycloak](https://www.keycloak.org/) (open source)
+- [SuperTokens](https://supertokens.io/) (open source)
+- [Auth0](https://auth0.com/)
+- [Okta](https://www.okta.com/products/authentication/)
 
-**Source code:** [Github](https://github.com/HarryMWinters/fastapi-oidc)
+FastAPI's generated interactive documentation supports the grant flows
+`authorization_code`, `implicit`, `password` and `client_credentials`.
 
 ## Installation
 
-`pip install fastapi-oidc`
+```
+poetry add fastapi-oidc
+```
+
+Or, for the old-timers:
+
+```
+pip install fastapi-oidc
+```
 
 ## Usage
 
-### Verify ID Tokens Issued by Third Party
-
-This is great if you just want to use something like Okta or google to handle
-your auth. All you need to do is verify the token and then you can extract user ID info
-from it.
+See the [API reference documentation](https://fastapi-oidc.readthedocs.io/en/latest/) 
+for more information.
 
 ```python3
 from fastapi import Depends
 from fastapi import FastAPI
-
-# Set up our OIDC
-from fastapi_oidc import IDToken
 from fastapi_oidc import get_auth
+from fastapi_oidc.types import IDToken
 
-OIDC_config = {
-    "client_id": "0oa1e3pv9opbyq2Gm4x7",
-    # Audience can be omitted in which case the aud value defaults to client_id
-    "audience": "https://yourapi.url.com/api",
-    "base_authorization_server_uri": "https://dev-126594.okta.com",
-    "issuer": "dev-126594.okta.com",
-    "signature_cache_ttl": 3600,
-}
-
-authenticate_user: Callable = get_auth(**OIDC_config)
 
 app = FastAPI()
 
+# e.g. local keycloak development server
+discovery_url = "http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration"
+issuer = "http://localhost:8080/auth/realms/my-realm"
+
+authenticated_user = get_auth(
+    discovery_url=discovery_url,
+    issuer=issuer,  # optional, verification only
+    audience="my-service",  # optional, verification only
+    signature_cache_ttl=3600,  # optional
+)
+
+
 @app.get("/protected")
-def protected(id_token: IDToken = Depends(authenticate_user)):
-    return {"Hello": "World", "user_email": id_token.email}
+def protected(
+    user: IDToken = Depends(authenticated_user),
+):
+    return user
 ```
 
-#### Using your own tokens
+### Optional: Predefined and custom validation of tokens
 
-The IDToken class will accept any number of extra field but if you want to craft your
-own token class and validation that's accounted for too.
+You can use other predefined token types or create your own to validate the 
+token's contents.
 
+Predefined Okta token:
 ```python3
-class CustomIDToken(fastapi_oidc.IDToken):
+from fastapi_oidc.types import OktaIDToken
+
+
+@app.get("/protected")
+def protected(id_token: OktaIDToken = Depends(authenticate_user)):
+    return id_token
+```
+
+Custom token:
+```python3
+from fastapi_oidc.types import IDToken
+
+
+class CustomIDToken(IDToken):
     custom_field: str
     custom_default: float = 3.14
 
 
-authenticate_user: Callable = get_auth(**OIDC_config, token_type=CustomIDToken)
-
-app = FastAPI()
-
-
 @app.get("/protected")
 def protected(id_token: CustomIDToken = Depends(authenticate_user)):
-    return {"Hello": "World", "user_email": id_token.custom_default}
+    return id_token
+```
+
+### FastAPI + Keycloak
+
+**TODO**
+
+Example of using Keycloak with FastAPI.
+```
+app/
+    __init__.py
+    main.py
+Dockerfile
+docker-compose.yml
 ```

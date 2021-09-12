@@ -27,13 +27,14 @@ from jose import ExpiredSignatureError
 from jose import JWTError
 from jose import jwt
 from jose.exceptions import JWTClaimsError
+from jose.jws import verify
 
 from fastapi_oidc import discovery
-from fastapi_oidc.exceptions import TokenSpecificationError
 
 
 def get_auth(
-    oidc_discovery_url: str,
+    discovery_url: str,
+    issuer: Optional[str] = None,
     audience: Optional[str] = None,
     signature_cache_ttl: int = 3600,
 ) -> Callable[[str], Dict]:
@@ -43,9 +44,11 @@ def get_auth(
     server code. The function it returns should be used to check user credentials.
 
     Args:
-        oidc_discovery_url(URL): Auth server well known configuration URL. E.g.
+        discovery_url(URL): Auth server well known configuration URL. E.g.
             http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration
-        signature_cache_ttl (int): How many seconds your app should cache the
+        issuer(URL): (Optional) Auth server issuer URL. E.g.
+            http://localhost:8080/auth/realms/my-realm
+        signature_cache_ttl (int): (Optional) How many seconds your app should cache the
             authorization server's public signatures.
         audience (str): (Optional) The audience string configured by your auth server.
 
@@ -56,7 +59,7 @@ def get_auth(
         Nothing intentional
     """
 
-    oauth2_scheme = OpenIdConnect(openIdConnectUrl=oidc_discovery_url)
+    oauth2_scheme = OpenIdConnect(openIdConnectUrl=discovery_url)
 
     discover = discovery.configure(cache_ttl=signature_cache_ttl)
 
@@ -76,7 +79,7 @@ def get_auth(
             HTTPException(status_code=401, detail=f"Unauthorized: {err}")
         """
         id_token = auth_header.split(" ")[-1]
-        oidc_discoveries = discover.auth_server(oidc_discovery_url=oidc_discovery_url)
+        oidc_discoveries = discover.auth_server(discovery_url=discovery_url)
         key = discover.public_keys(oidc_discoveries)
         algorithms = discover.signing_algos(oidc_discoveries)
 
@@ -85,13 +88,16 @@ def get_auth(
                 id_token,
                 key,
                 algorithms,
-                audience=audience if audience else None,
-                issuer=oidc_discoveries["issuer"],
+                audience=audience,
+                issuer=issuer,
                 # Disabled at_hash check since we aren't using the access token
-                options={"verify_at_hash": False},
+                options={
+                    "verify_at_hash": False,
+                    "verify_aud": audience is not None,
+                    "verify_iss": issuer is not None,
+                },
             )
             return token
-
         except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
             raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
 

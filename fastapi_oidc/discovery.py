@@ -22,8 +22,8 @@ def configure(cache_ttl: int):
         return algos
 
     @cached(TTLCache(1, cache_ttl))
-    def discover_auth_server(oidc_discovery_url: str) -> Dict:
-        r = requests.get(oidc_discovery_url)
+    def discover_auth_server(discovery_url: str) -> Dict:
+        r = requests.get(discovery_url)
         # If the auth server is failing we can't verify tokens.
         # Soooo panic I guess?
         r.raise_for_status()

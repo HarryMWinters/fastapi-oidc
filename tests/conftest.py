@@ -1,7 +1,7 @@
 import json
-import os
 import time
 import uuid
+from pathlib import Path
 
 import jwt
 import pytest
@@ -9,7 +9,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-FIXTURES_DIRECTORY = os.path.join(os.path.dirname(__file__), "fixtures")
+FIXTURES_DIRECTORY = Path("tests/fixtures")
 
 
 KEY = rsa.generate_private_key(
@@ -19,9 +19,9 @@ KEY = rsa.generate_private_key(
 
 @pytest.fixture
 def oidc_discovery():
-    with open(FIXTURES_DIRECTORY + "/AuthServerDiscovery.json") as f:
-        OIDC_DISCOVERY_RESPONSE = json.load(f)
-
+    OIDC_DISCOVERY_RESPONSE = json.loads(
+        (FIXTURES_DIRECTORY / "AuthServerDiscovery.json").read_text()
+    )
     return OIDC_DISCOVERY_RESPONSE
 
 
@@ -57,9 +57,8 @@ def public_key(key):
 @pytest.fixture
 def config_w_aud():
     return {
-        "client_id": "CongenitalOptimist",
+        "discovery_url": "WhatAreTheCivilianApplications?",
         "audience": "NeverAgain",
-        "base_authorization_server_uri": "WhatAreTheCivilianApplications?",
         "issuer": "PokeItWithAStick",
         "signature_cache_ttl": 6e3,
     }
@@ -68,8 +67,7 @@ def config_w_aud():
 @pytest.fixture
 def no_audience_config():
     return {
-        "client_id": "CongenitalOptimist",
-        "base_authorization_server_uri": "WhatAreTheCivilianApplications?",
+        "discovery_url": "WhatAreTheCivilianApplications?",
         "issuer": "PokeItWithAStick",
         "signature_cache_ttl": 6e3,
     }
@@ -106,14 +104,12 @@ def token_with_audience(private_key, config_w_aud, test_email) -> str:
 
 @pytest.fixture
 def token_without_audience(private_key, no_audience_config, test_email) -> str:
-    # Make a token where audience is client_id
-    client_id: str = str(no_audience_config["client_id"])
     issuer: str = str(no_audience_config["issuer"])
     now = int(time.time())
 
     return jwt.encode(
         {
-            "aud": client_id,
+            "aud": "WillNotCheckThis",
             "iss": issuer,
             "email": test_email,
             "name": "SweetAndFullOfGrace",
