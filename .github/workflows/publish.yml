@@ -1,0 +1,39 @@
+name: Publish
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - name: Install dependencies
+      run: |
+        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+        source $HOME/.poetry/env
+        poetry install
+
+    - name: Run tests
+      run: |
+        source $HOME/.poetry/env
+        poetry run pytest
+
+    - name: Build wheels
+      run: |
+        source $HOME/.poetry/env
+        poetry version $(git tag --points-at HEAD)
+        poetry build
+
+    - name: Upload
+      env:
+        USERNAME: __token__
+        PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        source $HOME/.poetry/env
+        poetry publish --username=$USERNAME --password=$PASSWORD
