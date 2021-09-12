@@ -1,15 +1,7 @@
 from typing import List
 
 from pydantic import BaseModel
-from pydantic import BaseSettings
 from pydantic import Extra
-
-
-class OIDCConfig(BaseSettings):
-    client_id: str
-    base_authorization_server_uri: str
-    issuer: str
-    signature_cache_ttl: str
 
 
 class IDToken(BaseModel):

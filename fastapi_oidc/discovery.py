@@ -5,7 +5,7 @@ from cachetools import TTLCache
 from cachetools import cached
 
 
-def configure(*_, cache_ttl: int):
+def configure(cache_ttl: int):
     @cached(TTLCache(1, cache_ttl), key=lambda d: d["jwks_uri"])
     def get_authentication_server_public_keys(OIDC_spec: Dict):
         """
@@ -22,9 +22,8 @@ def configure(*_, cache_ttl: int):
         return algos
 
     @cached(TTLCache(1, cache_ttl))
-    def discover_auth_server(*_, base_url: str) -> Dict:
-        discovery_url = f"{base_url}/.well-known/openid-configuration"
-        r = requests.get(discovery_url)
+    def discover_auth_server(oidc_discovery_url: str) -> Dict:
+        r = requests.get(oidc_discovery_url)
         # If the auth server is failing we can't verify tokens.
         # Soooo panic I guess?
         r.raise_for_status()
