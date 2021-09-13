@@ -76,14 +76,9 @@ def get_auth(
             f"Received {token_type=}"
         )
 
-    # As far as I can tell the oauth2_scheme does two things.
-    # 1. Extracts and returns the Authorization header.
-    # 2. Integrates with the OpenAPI3.0 doc generation in FastAPI.
-    #    This integration doesn't matter much now since OpenAPI
-    #    doesn't support OpenIDConnect yet.
-    #
-    # Some relevant examples https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
-    oauth2_scheme = OpenIdConnect(openIdConnectUrl=issuer)
+    oauth2_scheme = OpenIdConnect(
+        openIdConnectUrl=f"{base_authorization_server_uri}/.well-known/openid-configuration"
+    )
 
     discover = discovery.configure(cache_ttl=signature_cache_ttl)
 

@@ -1,11 +1,10 @@
 from typing import List
 
 from pydantic import BaseModel
-from pydantic import BaseSettings
 from pydantic import Extra
 
 
-class OIDCConfig(BaseSettings):
+class OIDCConfig(BaseModel):
     client_id: str
     base_authorization_server_uri: str
     issuer: str
