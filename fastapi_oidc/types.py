@@ -4,13 +4,6 @@ from pydantic import BaseModel
 from pydantic import Extra
 
 
-class OIDCConfig(BaseModel):
-    client_id: str
-    base_authorization_server_uri: str
-    issuer: str
-    signature_cache_ttl: str
-
-
 class IDToken(BaseModel):
     """Pydantic model representing an OIDC ID Token.
 
