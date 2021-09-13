@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module for validating OIDC ID Tokens. Configured via config.py 
+Module for validating Open ID Connect ID Tokens.
 
 Usage
 =====
@@ -8,7 +8,7 @@ Usage
 .. code-block:: python3
 
     # This assumes you've already configured get_auth in your_app.py
-    from you_app.auth import authenticate_user
+    from your_app.auth import authenticate_user
 
     @app.get("/auth")
     def test_auth(authenticated_user: AuthenticatedUser = Depends(authenticate_user)):
@@ -37,7 +37,7 @@ def get_auth(
     audience: Optional[str] = None,
     signature_cache_ttl: int = 3600,
 ) -> Callable[[str], Dict]:
-    """Take configurations and return the authenticate_user function.
+    """Take configurations and returns the :func:`authenticate_user` function.
 
     This function should only be invoked once at the beggining of your
     server code. The function it returns should be used to check user credentials.
@@ -45,8 +45,7 @@ def get_auth(
     Args:
         openid_connect_url (URL): URL to the "well known" openid connect config
             e.g. https://dev-123456.okta.com/.well-known/openid-configuration
-        issuer (URL): Same as base_authorization. This is used to generating OpenAPI3.0
-            docs which is broken (in OpenAPI/FastAPI) right now.
+        issuer (URL): (Optional) The issuer URL from your auth server.
         audience (str): (Optional) The audience string configured by your auth server.
         signature_cache_ttl (int): How many seconds your app should cache the
             authorization server's public signatures.

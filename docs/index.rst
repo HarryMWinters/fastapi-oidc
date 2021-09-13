@@ -1,11 +1,19 @@
 Welcome to fastapi-oidc's documentation!
 ========================================
 
-Verify ID Tokens Issued by Third Party
+Verify and decrypt 3rd party OpenID Connect tokens to protect your
+`FastAPI <https://github.com/tiangolo/fastapi>`_ endpoints.
 
-This is great if you just want to use something like Okta or google to handle
-your auth. All you need to do is verify the token and then you can extract
-user ID info from it.
+Easily used with authenticators such as:
+
+- `Keycloak <https://www.keycloak.org/>`_ (open source)
+- `SuperTokens <https://supertokens.io/>`_ (open source)
+- `Auth0 <https://auth0.com/>`_
+- `Okta <https://www.okta.com/products/authentication/>`_
+
+
+FastAPI's generated interactive documentation supports the grant flows
+``authorization_code``, ``implicit``, ``password`` and ``client_credentials``.
 
 .. toctree::
    :maxdepth: 2
