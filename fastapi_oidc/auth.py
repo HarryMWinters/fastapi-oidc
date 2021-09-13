@@ -32,9 +32,8 @@ from fastapi_oidc import discovery
 
 
 def get_auth(
-    client_id: str,
-    base_authorization_server_uri: str,
-    issuer: str,
+    openid_connect_url: str,
+    issuer: Optional[str] = None,
     audience: Optional[str] = None,
     signature_cache_ttl: int = 3600,
 ) -> Callable[[str], Dict]:
@@ -44,19 +43,13 @@ def get_auth(
     server code. The function it returns should be used to check user credentials.
 
     Args:
-        client_id (str): This string is provided when you register with your resource
-            server.
-        base_authorization_server_uri(URL): Everything before /.wellknow in your auth
-            server URL. I.E. https://dev-123456.okta.com
+        openid_connect_url (URL): URL to the "well known" openid connect config
+            e.g. https://dev-123456.okta.com/.well-known/openid-configuration
         issuer (URL): Same as base_authorization. This is used to generating OpenAPI3.0
             docs which is broken (in OpenAPI/FastAPI) right now.
+        audience (str): (Optional) The audience string configured by your auth server.
         signature_cache_ttl (int): How many seconds your app should cache the
             authorization server's public signatures.
-        audience (str): (Optional) The audience string configured by your auth server.
-            If not set defaults to client_id
-        token_type (IDToken or subclass): (Optional) An optional class to be returned by
-            the authenticate_user function.
-
 
     Returns:
         func: authenticate_user(auth_header: str) -> Dict
@@ -65,9 +58,7 @@ def get_auth(
         Nothing intentional
     """
 
-    oauth2_scheme = OpenIdConnect(
-        openIdConnectUrl=f"{base_authorization_server_uri}/.well-known/openid-configuration"
-    )
+    oauth2_scheme = OpenIdConnect(openIdConnectUrl=openid_connect_url)
 
     discover = discovery.configure(cache_ttl=signature_cache_ttl)
 
@@ -87,7 +78,7 @@ def get_auth(
             HTTPException(status_code=401, detail=f"Unauthorized: {err}")
         """
         id_token = auth_header.split(" ")[-1]
-        OIDC_discoveries = discover.auth_server(base_url=base_authorization_server_uri)
+        OIDC_discoveries = discover.auth_server(openid_connect_url=openid_connect_url)
         key = discover.public_keys(OIDC_discoveries)
         algorithms = discover.signing_algos(OIDC_discoveries)
 
@@ -96,10 +87,14 @@ def get_auth(
                 id_token,
                 key,
                 algorithms,
-                audience=audience if audience else client_id,
+                audience=audience,
                 issuer=issuer,
-                # Disabled at_hash check since we aren't using the access token
-                options={"verify_at_hash": False},
+                options={
+                    # Disabled at_hash check since we aren't using the access token
+                    "verify_at_hash": False,
+                    "verify_iss": issuer is not None,
+                    "verify_aud": audience is not None,
+                },
             )
 
         except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:

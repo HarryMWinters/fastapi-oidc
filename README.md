@@ -18,70 +18,76 @@
 
 ---
 
-:warning: **See [this issue](https://github.com/HarryMWinters/fastapi-oidc/issues/1) for
-simple role-your-own example of checking OIDC tokens.**
+**Documentation**: <a href="https://fastapi-oidc.readthedocs.io/" target="_blank">https://fastapi-oidc.readthedocs.io/</a>
 
-Verify and decrypt 3rd party OIDC ID tokens to protect your
-[fastapi](https://github.com/tiangolo/fastapi) endpoints.
+**Source Code**: <a href="https://github.com/HarryMWinters/fastapi-oidc" target="_blank">https://github.com/HarryMWinters/fastapi-oidc</a>
 
-**Documentation:** [ReadTheDocs](https://fastapi-oidc.readthedocs.io/en/latest/)
+---
 
-**Source code:** [Github](https://github.com/HarryMWinters/fastapi-oidc)
+Verify and decrypt 3rd party OpenID Connect tokens to protect your
+[FastAPI](https://github.com/tiangolo/fastapi) endpoints.
+
+Easily used with authenticators such as:
+- [Keycloak](https://www.keycloak.org/) (open source)
+- [SuperTokens](https://supertokens.io/) (open source)
+- [Auth0](https://auth0.com/)
+- [Okta](https://www.okta.com/products/authentication/)
+
+FastAPI's generated interactive documentation supports the grant flows
+`authorization_code`, `implicit`, `password` and `client_credentials`.
 
 ## Installation
 
-`pip install fastapi-oidc`
+```
+poetry add fastapi-oidc
+```
+
+Or, for the old-timers:
+
+```
+pip install fastapi-oidc
+```
 
 ## Usage
-
-### Verify ID Tokens Issued by Third Party
-
-This is great if you just want to use something like Okta or google to handle
-your auth. All you need to do is verify the token and then you can extract user ID info
-from it.
 
 ```python3
 from fastapi import Depends
 from fastapi import FastAPI
 
-# Set up our OIDC
 from fastapi_oidc import IDToken
 from fastapi_oidc import get_auth
 
 
-authenticate_user = get_auth(
-    client_id": "0oa1e3pv9opbyq2Gm4x7",
-    "base_authorization_server_uri": "https://dev-126594.okta.com",
-    "issuer": "dev-126594.okta.com",
-    # Audience can be omitted in which case it defaults to client_id
-    "audience": "https://yourapi.url.com/api",  # optional, verification only
-    "signature_cache_ttl": 3600,  # optional
-)
-
 app = FastAPI()
+
+authenticate_user = get_auth(
+    openid_connect_url="https://dev-123456.okta.com/.well-known/openid-configuration",
+    issuer="dev-126594.okta.com",  # optional, verification only
+    audience="https://yourapi.url.com/api",  # optional, verification only
+    signature_cache_ttl=3600,  # optional
+)
 
 @app.get("/protected")
 def protected(id_token: IDToken = Depends(authenticate_user)):
     return {"Hello": "World", "user_email": id_token.email}
 ```
 
-#### Using your own tokens
+### Optional: Custom token validation
 
-The IDToken class will accept any number of extra field but if you want to craft your
-own token class and validation that's accounted for too.
+The IDToken class will accept any number of extra fields but you can also
+validate fields in the token like this:
 
 ```python3
-class CustomIDToken(fastapi_oidc.IDToken):
+class MyAuthenticatedUser(IDToken):
     custom_field: str
     custom_default: float = 3.14
 
 
-authenticate_user = get_auth(**OIDC_config)
-
 app = FastAPI()
 
+authenticate_user = get_auth(...)
 
 @app.get("/protected")
-def protected(id_token: CustomIDToken = Depends(authenticate_user)):
-    return {"Hello": "World", "user_email": id_token.custom_default}
+def protected(user: MyAuthenticatedUser = Depends(authenticate_user)):
+    return {"Hello": "World", "custom_field": user.custom_field}
 ```

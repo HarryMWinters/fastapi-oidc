@@ -22,11 +22,9 @@ def configure(*_, cache_ttl: int):
         return algos
 
     @cached(TTLCache(1, cache_ttl))
-    def discover_auth_server(*_, base_url: str) -> Dict:
-        discovery_url = f"{base_url}/.well-known/openid-configuration"
-        r = requests.get(discovery_url)
-        # If the auth server is failing we can't verify tokens.
-        # Soooo panic I guess?
+    def discover_auth_server(*_, openid_connect_url: str) -> Dict:
+        r = requests.get(openid_connect_url)
+        # Raise if the auth server is failing since we can't verify tokens
         r.raise_for_status()
         configuration = r.json()
         return configuration

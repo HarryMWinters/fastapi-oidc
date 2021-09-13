@@ -39,7 +39,6 @@ def test__authenticate_user_no_aud(
     id_token = IDToken(**authenticate_user(auth_header=f"Bearer {token}"))
 
     assert id_token.email == test_email  # nosec
-    assert id_token.aud == no_audience_config["client_id"]
 
 
 def test__authenticate_user_returns_custom_tokens(

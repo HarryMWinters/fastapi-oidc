@@ -23,13 +23,13 @@ Installation
 
 .. code-block:: bash
 
-   pip install fastapi-oidc
+   poetry add fastapi-oidc
    
-Or, if you you're feeling hip...
+Or, for the old-timers:
 
 .. code-block:: bash
 
-   poetry add fastapi-oidc
+   pip install fastapi-oidc
 
 Example
 -------
@@ -41,20 +41,18 @@ Basic configuration for verifying OIDC tokens.
    from fastapi import Depends
    from fastapi import FastAPI
 
-   # Set up our OIDC
    from fastapi_oidc import IDToken
    from fastapi_oidc import get_auth
 
-   OIDC_config = {
-      "client_id": "0oa1e3pv9opbyq2Gm4x7",
-      "base_authorization_server_uri": "https://dev-126594.okta.com",
-      "issuer": "dev-126594.okta.com",
-      "signature_cache_ttl": 3600,
-   }
-
-   authenticate_user: Callable = get_auth(**OIDC_config)
 
    app = FastAPI()
+
+   authenticate_user = get_auth(
+      openid_connect_url="https://dev-123456.okta.com/.well-known/openid-configuration",
+      issuer="dev-126594.okta.com",  # optional, verification only
+      audience="https://yourapi.url.com/api",  # optional, verification only
+      signature_cache_ttl=3600,  # optional
+   )
 
    @app.get("/protected")
    def protected(id_token: IDToken = Depends(authenticate_user)):
@@ -68,13 +66,6 @@ Auth
 ----
 
 .. automodule:: fastapi_oidc.auth
-   :members:
-
-
-Discovery
----------
-
-.. automodule:: fastapi_oidc.discovery
    :members:
 
 Types
