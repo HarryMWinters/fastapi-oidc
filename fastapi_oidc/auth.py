@@ -17,8 +17,8 @@ Usage
 """
 
 from typing import Callable
+from typing import Dict
 from typing import Optional
-from typing import Type
 
 from fastapi import Depends
 from fastapi import HTTPException
@@ -29,19 +29,15 @@ from jose import jwt
 from jose.exceptions import JWTClaimsError
 
 from fastapi_oidc import discovery
-from fastapi_oidc.exceptions import TokenSpecificationError
-from fastapi_oidc.types import IDToken
 
 
 def get_auth(
-    *_,
     client_id: str,
-    audience: Optional[str] = None,
     base_authorization_server_uri: str,
     issuer: str,
-    signature_cache_ttl: int,
-    token_type: Type[IDToken] = IDToken,
-) -> Callable[[str], IDToken]:
+    audience: Optional[str] = None,
+    signature_cache_ttl: int = 3600,
+) -> Callable[[str], Dict]:
     """Take configurations and return the authenticate_user function.
 
     This function should only be invoked once at the beggining of your
@@ -63,18 +59,11 @@ def get_auth(
 
 
     Returns:
-        func: authenticate_user(auth_header: str) -> IDToken (or token_type)
+        func: authenticate_user(auth_header: str) -> Dict
 
     Raises:
         Nothing intentional
     """
-
-    if not issubclass(token_type, IDToken):
-        raise TokenSpecificationError(
-            "Invalid argument for token_type. "
-            "Token type must be a subclass of fastapi_oidc.type.IDToken. "
-            f"Received {token_type=}"
-        )
 
     oauth2_scheme = OpenIdConnect(
         openIdConnectUrl=f"{base_authorization_server_uri}/.well-known/openid-configuration"
@@ -82,7 +71,7 @@ def get_auth(
 
     discover = discovery.configure(cache_ttl=signature_cache_ttl)
 
-    def authenticate_user(auth_header: str = Depends(oauth2_scheme)) -> IDToken:
+    def authenticate_user(auth_header: str = Depends(oauth2_scheme)) -> Dict:
         """Validate and parse OIDC ID token against issuer in config.
         Note this function caches the signatures and algorithms of the issuing server
         for signature_cache_ttl seconds.
@@ -92,7 +81,7 @@ def get_auth(
                 scenes by Depends.
 
         Return:
-            IDToken (types.IDToken):
+            Dict: Dictionary with IDToken information
 
         raises:
             HTTPException(status_code=401, detail=f"Unauthorized: {err}")
@@ -103,7 +92,7 @@ def get_auth(
         algorithms = discover.signing_algos(OIDC_discoveries)
 
         try:
-            token = jwt.decode(
+            return jwt.decode(
                 id_token,
                 key,
                 algorithms,
@@ -112,7 +101,6 @@ def get_auth(
                 # Disabled at_hash check since we aren't using the access token
                 options={"verify_at_hash": False},
             )
-            return token_type.parse_obj(token)
 
         except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
             raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")

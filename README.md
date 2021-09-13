@@ -48,16 +48,15 @@ from fastapi import FastAPI
 from fastapi_oidc import IDToken
 from fastapi_oidc import get_auth
 
-OIDC_config = {
-    "client_id": "0oa1e3pv9opbyq2Gm4x7",
-    # Audience can be omitted in which case the aud value defaults to client_id
-    "audience": "https://yourapi.url.com/api",
+
+authenticate_user = get_auth(
+    client_id": "0oa1e3pv9opbyq2Gm4x7",
     "base_authorization_server_uri": "https://dev-126594.okta.com",
     "issuer": "dev-126594.okta.com",
-    "signature_cache_ttl": 3600,
-}
-
-authenticate_user: Callable = get_auth(**OIDC_config)
+    # Audience can be omitted in which case it defaults to client_id
+    "audience": "https://yourapi.url.com/api",  # optional, verification only
+    "signature_cache_ttl": 3600,  # optional
+)
 
 app = FastAPI()
 
@@ -77,7 +76,7 @@ class CustomIDToken(fastapi_oidc.IDToken):
     custom_default: float = 3.14
 
 
-authenticate_user: Callable = get_auth(**OIDC_config, token_type=CustomIDToken)
+authenticate_user = get_auth(**OIDC_config)
 
 app = FastAPI()
 

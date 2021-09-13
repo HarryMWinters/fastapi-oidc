@@ -1,2 +1,0 @@
-class TokenSpecificationError(BaseException):
-    pass
