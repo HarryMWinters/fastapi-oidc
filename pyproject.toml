@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-oidc"
-version = "0.0.8"
+version = "0.0.9"
 description = "A simple library for parsing and verifying externally issued OIDC ID tokens in fastapi."
 authors = ["HarryMWinters <harrymcwinters@gmail.com>"]
 license = "MIT"
