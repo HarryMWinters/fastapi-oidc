@@ -3,7 +3,7 @@ from fastapi.security import SecurityScopes
 
 import fastapi_oidc
 from fastapi_oidc import Auth
-from fastapi_oidc.types import IDToken
+from fastapi_oidc.idtoken_types import IDToken
 
 
 def test__authenticate_user(
@@ -21,7 +21,7 @@ def test__authenticate_user(
     id_token = auth.required(
         security_scopes=SecurityScopes(scopes=[]),
         authorization_credentials=HTTPAuthorizationCredentials(
-            scheme="hello", credentials=token
+            scheme="Bearer", credentials=token
         ),
     )
 
@@ -46,7 +46,7 @@ def test__authenticate_user_no_aud(
     id_token = auth.required(
         security_scopes=SecurityScopes(scopes=[]),
         authorization_credentials=HTTPAuthorizationCredentials(
-            scheme="hello", credentials=token
+            scheme="Bearer", credentials=token
         ),
     )
 
@@ -71,7 +71,7 @@ def test__authenticate_user_returns_custom_tokens(
     custom_token = auth.required(
         security_scopes=SecurityScopes(scopes=[]),
         authorization_credentials=HTTPAuthorizationCredentials(
-            scheme="hello", credentials=token
+            scheme="Bearer", credentials=token
         ),
     )
 

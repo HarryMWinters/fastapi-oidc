@@ -56,14 +56,13 @@ fastapi-oidc + keycloak.
 ### Standard usage
 
 ```python3
-from typing import Optional
-
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import Security
 from fastapi import status
 
 from fastapi_oidc import Auth
+from fastapi_oidc import GrantType
 from fastapi_oidc import KeycloakIDToken
 
 auth = Auth(
@@ -71,18 +70,14 @@ auth = Auth(
     issuer="http://localhost:8080/auth/realms/my-realm",  # optional, verification only
     client_id="my-client",  # optional, verification only
     scopes=["email"],  # optional, verification only
+    grant_types=[GrantType.IMPLICIT],  # optional, docs only
     idtoken_model=KeycloakIDToken,  # optional, verification only
 )
 
 app = FastAPI(
     title="Example",
     version="dev",
-    dependencies=[Depends(auth.implicit_scheme)],
-    # multiple available schemes:
-    # - oidc_scheme (displays all schemes supported by the auth server in docs)
-    # - password_scheme
-    # - implicit_scheme
-    # - authcode_scheme
+    dependencies=[Depends(auth)],
 )
 
 @app.get("/protected")
