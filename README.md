@@ -65,15 +65,15 @@ auth = Auth(
     openid_connect_url="http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration",
     issuer="http://localhost:8080/auth/realms/my-realm",  # optional, verification only
     client_id="my-client",  # optional, verification only
-    idtoken_model=KeycloakIDToken,  # optional
+    scopes=["email"],  # optional, verification only
+    idtoken_model=KeycloakIDToken,  # optional, verification only
 )
 
 app = FastAPI(
     title="Example",
     version="dev",
-    dependencies=[Depends(auth.implicit_scheme)],
+    dependencies=[Depends(auth.implicit_scheme)],  # multiple schemes available
 )
-
 
 @app.get("/protected")
 def protected(id_token: KeycloakIDToken = Security(auth.required)):

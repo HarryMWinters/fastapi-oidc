@@ -51,7 +51,6 @@ class OktaIDToken(IDToken):
 class KeycloakIDToken(IDToken):
     """Pydantic Model for the IDToken returned by Keycloak's OIDC implementation."""
 
-    auth_time: int
     jti: str
     name: str
     email: str

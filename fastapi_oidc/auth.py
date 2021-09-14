@@ -16,7 +16,7 @@ Usage
         return f"Hello {name}"
 """
 
-from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Type
 
@@ -52,11 +52,11 @@ class Auth:
         openid_connect_url: str,
         issuer: Optional[str] = None,
         client_id: Optional[str] = None,
-        scopes: Dict[str, str] = dict(),
+        scopes: List[str] = list(),
         signature_cache_ttl: int = 3600,
         idtoken_model: Type = IDToken,
     ):
-        """Configure authentication and use method :func:`authenticate_user`
+        """Configure authentication and use method :func:`require` or :func:`optional`
         to check user credentials.
 
         Args:
@@ -77,11 +77,15 @@ class Auth:
         self.issuer = issuer
         self.client_id = client_id
         self.idtoken_model = idtoken_model
+        self.scopes = scopes
 
         self.discover = discovery.configure(cache_ttl=signature_cache_ttl)
         oidc_discoveries = self.discover.auth_server(
             openid_connect_url=self.openid_connect_url
         )
+        scopes_dict = {
+            scope: "" for scope in self.discover.supported_scopes(oidc_discoveries)
+        }
 
         self.oidc_scheme = OpenIdConnect(
             openIdConnectUrl=openid_connect_url,
@@ -89,7 +93,7 @@ class Auth:
         )
         self.password_scheme = OAuth2PasswordBearer(
             tokenUrl=self.discover.token_url(oidc_discoveries),
-            scopes=scopes,
+            scopes=scopes_dict,
             auto_error=False,
         )
         self.implicit_scheme = OAuth2Facade(
@@ -98,7 +102,7 @@ class Auth:
                     "authorizationUrl": self.discover.authorization_url(
                         oidc_discoveries
                     ),
-                    "scopes": scopes,
+                    "scopes": scopes_dict,
                 }
             ),
             scheme_name="OAuth2ImplicitBearer",
@@ -108,7 +112,7 @@ class Auth:
             authorizationUrl=self.discover.authorization_url(oidc_discoveries),
             tokenUrl=self.discover.token_url(oidc_discoveries),
             # refreshUrl=self.discover.refresh_url(oidc_discoveries),
-            scopes=scopes,
+            scopes=scopes_dict,
             auto_error=False,
         )
 
@@ -118,7 +122,7 @@ class Auth:
         authorization_credentials: Optional[HTTPAuthorizationCredentials] = Depends(
             HTTPBearer()
         ),
-    ) -> Optional[IDToken]:
+    ) -> IDToken:
         """Validate and parse OIDC ID token against issuer in config.
         Note this function caches the signatures and algorithms of the issuing
         server for signature_cache_ttl seconds.
@@ -136,11 +140,15 @@ class Auth:
             IDToken validation errors
         """
 
-        return self.authenticate_user(
+        id_token = self.authenticate_user(
             security_scopes,
             authorization_credentials,
             auto_error=True,
         )
+        if id_token is None:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+        else:
+            return id_token
 
     def optional(
         self,
@@ -230,21 +238,21 @@ class Auth:
                         raise JWTError(
                             f"""Invalid authorized party "azp": {id_token["azp"]}"""
                         )
-                    elif type(token_audience) == list and len(token_audience) >= 1:
-                        raise JWTError('Missing authorized party "azp" in IDToken')
+                elif type(token_audience) == list and len(token_audience) >= 1:
+                    raise JWTError('Missing authorized party "azp" in IDToken')
 
         except (ExpiredSignatureError, JWTError, JWTClaimsError) as error:
             raise HTTPException(status_code=401, detail=f"Unauthorized: {error}")
 
-        if not set(security_scopes.scopes).issubset(
-            id_token.get("scope", "").split(" ")
-        ):
-            if auto_error:
-                raise HTTPException(
-                    status.HTTP_401_UNAUTHORIZED,
-                    detail=f"""Missing scope token, only have {id_token["scopes"]}""",
-                )
-            else:
-                return None
+        expected_scopes = set(self.scopes + security_scopes.scopes)
+        token_scopes = id_token.get("scope", "").split(" ")
+        if not expected_scopes.issubset(token_scopes):
+            raise HTTPException(
+                status.HTTP_401_UNAUTHORIZED,
+                detail=(
+                    f"Missing scope token, expected {expected_scopes} to be a "
+                    f"subset of received {token_scopes}",
+                ),
+            )
 
         return self.idtoken_model(**id_token)

@@ -15,7 +15,8 @@ auth = Auth(
     openid_connect_url="http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration",
     issuer="http://localhost:8080/auth/realms/my-realm",  # optional, verification only
     client_id="my-client",  # optional, verification only
-    idtoken_model=KeycloakIDToken,  # optional
+    scopes=["email"],  # optional, verification only
+    idtoken_model=KeycloakIDToken,  # optional, verification only
 )
 
 app = FastAPI(
@@ -46,9 +47,7 @@ def protected(id_token: KeycloakIDToken = Security(auth.required)):
 
 
 @app.get("/mixed")
-def mixed(
-    id_token: Optional[KeycloakIDToken] = Security(auth.optional),
-):
+def mixed(id_token: Optional[KeycloakIDToken] = Security(auth.optional)):
     if id_token is None:
         return dict(message="You are not authenticated")
     else:
