@@ -3,7 +3,6 @@ from typing import Optional
 import uvicorn
 from fastapi import Depends
 from fastapi import FastAPI
-from fastapi import HTTPException
 from fastapi import Security
 from fastapi import status
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +14,7 @@ from fastapi_oidc import KeycloakIDToken
 auth = Auth(
     openid_connect_url="http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration",
     issuer="http://localhost:8080/auth/realms/my-realm",  # optional, verification only
-    # audience="my-audience",  # optional, verification only
+    client_id="my-client",  # optional, verification only
     idtoken_model=KeycloakIDToken,  # optional
 )
 
@@ -42,11 +41,7 @@ def redirect_to_docs():
 
 
 @app.get("/protected")
-def protected(id_token: Optional[KeycloakIDToken] = Security(auth.required)):
-    print(id_token)
-    if id_token is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-
+def protected(id_token: KeycloakIDToken = Security(auth.required)):
     return dict(message=f"You are {id_token.email}")
 
 

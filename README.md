@@ -51,25 +51,33 @@ pip install fastapi-oidc
 ## Usage
 
 ```python3
+from typing import Optional
+
 from fastapi import Depends
 from fastapi import FastAPI
+from fastapi import Security
+from fastapi import status
 
-from fastapi_oidc import IDToken
-from fastapi_oidc import get_auth
+from fastapi_oidc import Auth
+from fastapi_oidc import KeycloakIDToken
 
-
-app = FastAPI()
-
-authenticate_user = get_auth(
-    openid_connect_url="https://dev-123456.okta.com/.well-known/openid-configuration",
-    issuer="dev-126594.okta.com",  # optional, verification only
-    audience="https://yourapi.url.com/api",  # optional, verification only
-    signature_cache_ttl=3600,  # optional
+auth = Auth(
+    openid_connect_url="http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration",
+    issuer="http://localhost:8080/auth/realms/my-realm",  # optional, verification only
+    client_id="my-client",  # optional, verification only
+    idtoken_model=KeycloakIDToken,  # optional
 )
 
+app = FastAPI(
+    title="Example",
+    version="dev",
+    dependencies=[Depends(auth.implicit_scheme)],
+)
+
+
 @app.get("/protected")
-def protected(id_token: IDToken = Depends(authenticate_user)):
-    return {"Hello": "World", "user_email": id_token.email}
+def protected(id_token: KeycloakIDToken = Security(auth.required)):
+    return dict(message=f"You are {id_token.email}")
 ```
 
 ### Optional: Custom token validation

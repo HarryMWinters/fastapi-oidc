@@ -57,7 +57,7 @@ def public_key(key):
 @pytest.fixture
 def config_w_aud():
     return {
-        "audience": "NeverAgain",
+        "client_id": "NeverAgain",
         "openid_connect_url": "WhatAreTheCivilianApplications?",
         "issuer": "PokeItWithAStick",
         "signature_cache_ttl": 6e3,
@@ -75,7 +75,7 @@ def no_audience_config():
 
 @pytest.fixture
 def token_with_audience(private_key, config_w_aud, test_email) -> str:
-    audience: str = str(config_w_aud["audience"])
+    audience: str = str(config_w_aud["client_id"])
     issuer: str = str(config_w_aud["issuer"])
     now = int(time.time())
 

@@ -26,7 +26,7 @@ def test__authenticate_user(
     )
 
     assert id_token.email == test_email  # nosec
-    assert id_token.aud == config_w_aud["audience"]
+    assert id_token.aud == config_w_aud["client_id"]
 
 
 # Ensure that when no audience is supplied, that the audience defaults to client ID

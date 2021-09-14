@@ -51,7 +51,7 @@ class Auth:
         self,
         openid_connect_url: str,
         issuer: Optional[str] = None,
-        audience: Optional[str] = None,
+        client_id: Optional[str] = None,
         scopes: Dict[str, str] = dict(),
         signature_cache_ttl: int = 3600,
         idtoken_model: Type = IDToken,
@@ -63,7 +63,7 @@ class Auth:
             openid_connect_url (URL): URL to the "well known" openid connect config
                 e.g. https://dev-123456.okta.com/.well-known/openid-configuration
             issuer (URL): (Optional) The issuer URL from your auth server.
-            audience (str): (Optional) The audience string configured by your auth server.
+            client_id (str): (Optional) The client_id configured by your auth server.
             scopes (Dict[str, str]): (Optional) A dictionary of scopes and their descriptions.
             signature_cache_ttl (int): How many seconds your app should cache the
                 authorization server's public signatures.
@@ -75,7 +75,7 @@ class Auth:
 
         self.openid_connect_url = openid_connect_url
         self.issuer = issuer
-        self.audience = audience
+        self.client_id = client_id
         self.idtoken_model = idtoken_model
 
         self.discover = discovery.configure(cache_ttl=signature_cache_ttl)
@@ -213,20 +213,28 @@ class Auth:
                 authorization_credentials.credentials,
                 key,
                 algorithms,
-                audience=self.audience,
                 issuer=self.issuer,
+                audience=self.client_id,
                 options={
                     # Disabled at_hash check since we aren't using the access token
                     "verify_at_hash": False,
                     "verify_iss": self.issuer is not None,
-                    "verify_aud": self.audience is not None,
+                    "verify_aud": self.client_id is not None,
                 },
             )
-        except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
-            if auto_error:
-                raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
-            else:
-                return None
+
+            if self.client_id is not None:
+                token_audience = id_token["aud"]
+                if "azp" in id_token:
+                    if id_token["azp"] != self.client_id:
+                        raise JWTError(
+                            f"""Invalid authorized party "azp": {id_token["azp"]}"""
+                        )
+                    elif type(token_audience) == list and len(token_audience) >= 1:
+                        raise JWTError('Missing authorized party "azp" in IDToken')
+
+        except (ExpiredSignatureError, JWTError, JWTClaimsError) as error:
+            raise HTTPException(status_code=401, detail=f"Unauthorized: {error}")
 
         if not set(security_scopes.scopes).issubset(
             id_token.get("scope", "").split(" ")
