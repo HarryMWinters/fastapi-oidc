@@ -22,7 +22,7 @@ auth = Auth(
 app = FastAPI(
     title="Example",
     version="dev",
-    dependencies=[Depends(auth.oidc_scheme)],
+    dependencies=[Depends(auth.implicit_scheme)],
 )
 
 # CORS errors instead of seeing internal exceptions
@@ -42,7 +42,7 @@ def redirect_to_docs():
 
 
 @app.get("/protected")
-def protected(id_token: Optional[KeycloakIDToken] = Security(auth.authenticate_user())):
+def protected(id_token: Optional[KeycloakIDToken] = Security(auth.required)):
     print(id_token)
     if id_token is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
@@ -52,9 +52,7 @@ def protected(id_token: Optional[KeycloakIDToken] = Security(auth.authenticate_u
 
 @app.get("/mixed")
 def mixed(
-    id_token: Optional[KeycloakIDToken] = Security(
-        auth.authenticate_user(auto_error=False)
-    ),
+    id_token: Optional[KeycloakIDToken] = Security(auth.optional),
 ):
     if id_token is None:
         return dict(message="You are not authenticated")

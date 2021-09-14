@@ -1,4 +1,5 @@
 from typing import List
+from typing import Union
 
 from pydantic import BaseModel
 from pydantic import Extra
@@ -24,7 +25,7 @@ class IDToken(BaseModel):
 
     iss: str
     sub: str
-    aud: List[str]
+    aud: Union[str, List[str]]
     exp: int
     iat: int
 

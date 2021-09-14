@@ -57,7 +57,6 @@ class Auth:
         issuer: Optional[str] = None,
         audience: Optional[str] = None,
         scopes: Dict[str, str] = dict(),
-        auto_error: bool = True,
         signature_cache_ttl: int = 3600,
         idtoken_model: Type = IDToken,
     ):
@@ -70,7 +69,6 @@ class Auth:
             issuer (URL): (Optional) The issuer URL from your auth server.
             audience (str): (Optional) The audience string configured by your auth server.
             scopes (Dict[str, str]): (Optional) A dictionary of scopes and their descriptions.
-            auto_error (bool): (Optional) If True, raise an HTTPException if the token is invalid.
             signature_cache_ttl (int): How many seconds your app should cache the
                 authorization server's public signatures.
             idtoken_model (Type): (Optional) The model to use for validating the ID Token.
@@ -82,7 +80,6 @@ class Auth:
         self.openid_connect_url = openid_connect_url
         self.issuer = issuer
         self.audience = audience
-        self.auto_error = auto_error
         self.idtoken_model = idtoken_model
 
         self.discover = discovery.configure(cache_ttl=signature_cache_ttl)
@@ -119,14 +116,81 @@ class Auth:
             auto_error=False,
         )
 
-    def authenticate_user(self, auto_error=None):
+    def required(
+        self,
+        security_scopes: SecurityScopes,
+        authorization_credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+            HTTPBearer()
+        ),
+    ) -> Optional[IDToken]:
+        """Validate and parse OIDC ID token against issuer in config.
+        Note this function caches the signatures and algorithms of the issuing
+        server for signature_cache_ttl seconds.
+
+        Args:
+            security_scopes (SecurityScopes): Security scopes
+            auth_header (str): Base64 encoded OIDC Token. This is invoked
+                behind the scenes by Depends.
+
+        Return:
+            IDToken: Dictionary with IDToken information
+
+        raises:
+            HTTPException(status_code=401, detail=f"Unauthorized: {err}")
+            IDToken validation errors
+        """
+
+        return self.authenticate_user(
+            security_scopes,
+            authorization_credentials,
+            auto_error=True,
+        )
+
+    def optional(
+        self,
+        security_scopes: SecurityScopes,
+        authorization_credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+            HTTPBearer(auto_error=False)
+        ),
+    ) -> Optional[IDToken]:
+        """Optionally validate and parse OIDC ID token against issuer in config.
+        Will not raise if the user is not authenticated. Note this function
+        caches the signatures and algorithms of the issuing server for
+        signature_cache_ttl seconds.
+
+        Args:
+            security_scopes (SecurityScopes): Security scopes
+            auth_header (str): Base64 encoded OIDC Token. This is invoked
+                behind the scenes by Depends.
+
+        Return:
+            IDToken: Dictionary with IDToken information
+
+        raises:
+            IDToken validation errors
+        """
+
+        return self.authenticate_user(
+            security_scopes,
+            authorization_credentials,
+            auto_error=False,
+        )
+
+    def authenticate_user(
+        self,
+        security_scopes: SecurityScopes,
+        authorization_credentials: Optional[HTTPAuthorizationCredentials],
+        auto_error: bool,
+    ) -> Optional[IDToken]:
         """Validate and parse OIDC ID token against issuer in config.
         Note this function caches the signatures and algorithms of the issuing server
         for signature_cache_ttl seconds.
 
         Args:
-            auth_header (str): Base64 encoded OIDC Token. This is invoked behind the
-                scenes by Depends.
+            security_scopes (SecurityScopes): Security scopes
+            auth_header (str): Base64 encoded OIDC Token
+            auto_error (bool): If True, will raise an HTTPException if the user
+                is not authenticated.
 
         Return:
             IDToken: Dictionary with IDToken information
@@ -134,59 +198,47 @@ class Auth:
         raises:
             HTTPException(status_code=401, detail=f"Unauthorized: {err}")
         """
-
-        if auto_error is None:
-            auto_error = self.auto_error
-
-        def authenticate_user_(
-            security_scopes: SecurityScopes,
-            authorization_credentials: Optional[HTTPAuthorizationCredentials] = Depends(
-                HTTPBearer(auto_error=auto_error)
-            ),
-        ) -> Optional[IDToken]:
-            if authorization_credentials is None:
-                if auto_error:
-                    raise HTTPException(
-                        status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token"
-                    )
-                else:
-                    return None
-
-            oidc_discoveries = self.discover.auth_server(
-                openid_connect_url=self.openid_connect_url
-            )
-            key = self.discover.public_keys(oidc_discoveries)
-            algorithms = self.discover.signing_algos(oidc_discoveries)
-
-            try:
-                id_token = jwt.decode(
-                    authorization_credentials.credentials,
-                    key,
-                    algorithms,
-                    audience=self.audience,
-                    issuer=self.issuer,
-                    options={
-                        # Disabled at_hash check since we aren't using the access token
-                        "verify_at_hash": False,
-                        "verify_iss": self.issuer is not None,
-                        "verify_aud": self.audience is not None,
-                    },
+        if authorization_credentials is None:
+            if auto_error:
+                raise HTTPException(
+                    status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token"
                 )
-            except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
-                if auto_error:
-                    raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
-                else:
-                    return None
+            else:
+                return None
 
-            if not set(security_scopes.scopes).issubset(id_token["scope"].split(" ")):
-                if auto_error:
-                    raise HTTPException(
-                        status.HTTP_401_UNAUTHORIZED,
-                        detail=f"""Missing scope token, only have {id_token["scopes"]}""",
-                    )
-                else:
-                    return None
+        oidc_discoveries = self.discover.auth_server(
+            openid_connect_url=self.openid_connect_url
+        )
+        key = self.discover.public_keys(oidc_discoveries)
+        algorithms = self.discover.signing_algos(oidc_discoveries)
 
-            return self.idtoken_model(**id_token)
+        try:
+            id_token = jwt.decode(
+                authorization_credentials.credentials,
+                key,
+                algorithms,
+                audience=self.audience,
+                issuer=self.issuer,
+                options={
+                    # Disabled at_hash check since we aren't using the access token
+                    "verify_at_hash": False,
+                    "verify_iss": self.issuer is not None,
+                    "verify_aud": self.audience is not None,
+                },
+            )
+        except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
+            if auto_error:
+                raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
+            else:
+                return None
 
-        return authenticate_user_
+        if not set(security_scopes.scopes).issubset(id_token["scope"].split(" ")):
+            if auto_error:
+                raise HTTPException(
+                    status.HTTP_401_UNAUTHORIZED,
+                    detail=f"""Missing scope token, only have {id_token["scopes"]}""",
+                )
+            else:
+                return None
+
+        return self.idtoken_model(**id_token)
