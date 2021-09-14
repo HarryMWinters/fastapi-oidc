@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-oidc"
-version = "0.0.8"
+version = "0.0.0"
 description = "A simple library for parsing and verifying externally issued OIDC ID tokens in fastapi."
 authors = ["HarryMWinters <harrymcwinters@gmail.com>"]
 license = "MIT"
@@ -27,6 +27,7 @@ mypy = "^0.910"
 types-cachetools = "^0.1.9"
 types-requests = "^2.25.0"
 pre-commit = "^2.13.0"
+uvicorn = "^0.15.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
@@ -36,4 +37,4 @@ build-backend = "poetry.masonry.api"
 profile = "black"
 force_single_line = "True"
 known_first_party = []
-known_third_party = ["cachetools", "cryptography", "fastapi", "jose", "jwt", "pydantic", "pytest", "requests"]
+known_third_party = ["cachetools", "cryptography", "fastapi", "jose", "jwt", "pydantic", "pytest", "requests", "starlette", "uvicorn"]

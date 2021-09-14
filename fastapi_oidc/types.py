@@ -24,7 +24,7 @@ class IDToken(BaseModel):
 
     iss: str
     sub: str
-    aud: str
+    aud: List[str]
     exp: int
     iat: int
 
@@ -34,6 +34,21 @@ class IDToken(BaseModel):
 
 class OktaIDToken(IDToken):
     """Pydantic Model for the IDToken returned by Okta's OIDC implementation."""
+
+    auth_time: int
+    ver: int
+    jti: str
+    amr: List[str]
+    idp: str
+    nonce: str
+    at_hash: str
+    name: str
+    email: str
+    preferred_username: str
+
+
+class KeycloakIDToken(IDToken):
+    """Pydantic Model for the IDToken returned by Keycloak's OIDC implementation."""
 
     auth_time: int
     ver: int
