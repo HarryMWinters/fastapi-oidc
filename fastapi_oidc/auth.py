@@ -40,13 +40,12 @@ from jose.exceptions import JWTClaimsError
 from fastapi_oidc import discovery
 from fastapi_oidc.types import IDToken
 
+# class AuthBearer(HTTPBearer):
+#     async def __call__(self, request: Request):
+#         return await super().__call__(request)
 
-class AuthBearer(HTTPBearer):
-    async def __call__(self, request: Request):
-        return await super().__call__(request)
 
-
-class EmptyOAuth2(OAuth2):
+class OAuth2Facade(OAuth2):
     async def __call__(self, request: Request) -> Optional[str]:
         return None
 
@@ -92,13 +91,15 @@ class Auth:
         )
 
         self.oidc_scheme = OpenIdConnect(
-            openIdConnectUrl=openid_connect_url, auto_error=auto_error
+            openIdConnectUrl=openid_connect_url,
+            auto_error=False,
         )
         self.password_scheme = OAuth2PasswordBearer(
             tokenUrl=self.discover.token_url(oidc_discoveries),
             scopes=scopes,
+            auto_error=False,
         )
-        self.implicit_scheme = EmptyOAuth2(
+        self.implicit_scheme = OAuth2Facade(
             flows=OAuthFlows(
                 implicit={
                     "authorizationUrl": self.discover.authorization_url(
@@ -108,22 +109,17 @@ class Auth:
                 }
             ),
             scheme_name="OAuth2ImplicitBearer",
-            auto_error=auto_error,
+            auto_error=False,
         )
         self.authcode_scheme = OAuth2AuthorizationCodeBearer(
             authorizationUrl=self.discover.authorization_url(oidc_discoveries),
             tokenUrl=self.discover.token_url(oidc_discoveries),
             # refreshUrl=self.discover.refresh_url(oidc_discoveries),
             scopes=scopes,
+            auto_error=False,
         )
 
-    def authenticate_user(
-        self,
-        security_scopes: SecurityScopes,
-        authorization_credentials: Optional[HTTPAuthorizationCredentials] = Depends(
-            AuthBearer(auto_error=False)
-        ),
-    ) -> Optional[IDToken]:
+    def authenticate_user(self, auto_error=None):
         """Validate and parse OIDC ID token against issuer in config.
         Note this function caches the signatures and algorithms of the issuing server
         for signature_cache_ttl seconds.
@@ -133,53 +129,64 @@ class Auth:
                 scenes by Depends.
 
         Return:
-            Dict: Dictionary with IDToken information
+            IDToken: Dictionary with IDToken information
 
         raises:
             HTTPException(status_code=401, detail=f"Unauthorized: {err}")
         """
 
-        if authorization_credentials is None:
-            if self.auto_error:
-                raise HTTPException(
-                    status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token"
-                )
-            else:
-                return None
+        if auto_error is None:
+            auto_error = self.auto_error
 
-        oidc_discoveries = self.discover.auth_server(
-            openid_connect_url=self.openid_connect_url
-        )
-        key = self.discover.public_keys(oidc_discoveries)
-        algorithms = self.discover.signing_algos(oidc_discoveries)
+        def authenticate_user_(
+            security_scopes: SecurityScopes,
+            authorization_credentials: Optional[HTTPAuthorizationCredentials] = Depends(
+                HTTPBearer(auto_error=auto_error)
+            ),
+        ) -> Optional[IDToken]:
+            if authorization_credentials is None:
+                if auto_error:
+                    raise HTTPException(
+                        status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token"
+                    )
+                else:
+                    return None
 
-        try:
-            id_token = jwt.decode(
-                authorization_credentials.credentials,
-                key,
-                algorithms,
-                audience=self.audience,
-                issuer=self.issuer,
-                options={
-                    # Disabled at_hash check since we aren't using the access token
-                    "verify_at_hash": False,
-                    "verify_iss": self.issuer is not None,
-                    "verify_aud": self.audience is not None,
-                },
+            oidc_discoveries = self.discover.auth_server(
+                openid_connect_url=self.openid_connect_url
             )
-        except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
-            if self.auto_error:
-                raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
-            else:
-                return None
+            key = self.discover.public_keys(oidc_discoveries)
+            algorithms = self.discover.signing_algos(oidc_discoveries)
 
-        if not set(security_scopes.scopes).issubset(id_token["scope"].split(" ")):
-            if self.auto_error:
-                raise HTTPException(
-                    status.HTTP_401_UNAUTHORIZED,
-                    detail=f"""Missing scope token, only have {id_token["scopes"]}""",
+            try:
+                id_token = jwt.decode(
+                    authorization_credentials.credentials,
+                    key,
+                    algorithms,
+                    audience=self.audience,
+                    issuer=self.issuer,
+                    options={
+                        # Disabled at_hash check since we aren't using the access token
+                        "verify_at_hash": False,
+                        "verify_iss": self.issuer is not None,
+                        "verify_aud": self.audience is not None,
+                    },
                 )
-            else:
-                return None
+            except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
+                if auto_error:
+                    raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
+                else:
+                    return None
 
-        return self.idtoken_model(**id_token)
+            if not set(security_scopes.scopes).issubset(id_token["scope"].split(" ")):
+                if auto_error:
+                    raise HTTPException(
+                        status.HTTP_401_UNAUTHORIZED,
+                        detail=f"""Missing scope token, only have {id_token["scopes"]}""",
+                    )
+                else:
+                    return None
+
+            return self.idtoken_model(**id_token)
+
+        return authenticate_user_

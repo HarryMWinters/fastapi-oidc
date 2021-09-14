@@ -51,12 +51,8 @@ class KeycloakIDToken(IDToken):
     """Pydantic Model for the IDToken returned by Keycloak's OIDC implementation."""
 
     auth_time: int
-    ver: int
     jti: str
-    amr: List[str]
-    idp: str
-    nonce: str
-    at_hash: str
     name: str
     email: str
+    email_verified: bool
     preferred_username: str
