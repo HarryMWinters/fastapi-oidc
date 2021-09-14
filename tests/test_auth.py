@@ -1,4 +1,8 @@
-from fastapi_oidc import auth
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import SecurityScopes
+
+import fastapi_oidc
+from fastapi_oidc import Auth
 from fastapi_oidc.types import IDToken
 
 
@@ -9,13 +13,17 @@ def test__authenticate_user(
     config_w_aud,
     test_email,
 ):
-
-    monkeypatch.setattr(auth.discovery, "configure", mock_discovery)
+    monkeypatch.setattr(fastapi_oidc.auth.discovery, "configure", mock_discovery)
 
     token = token_with_audience
 
-    authenticate_user = auth.get_auth(**config_w_aud)
-    id_token = IDToken(**authenticate_user(auth_header=f"Bearer {token}"))
+    auth = Auth(**config_w_aud)
+    id_token = auth.required(
+        security_scopes=SecurityScopes(scopes=[]),
+        authorization_credentials=HTTPAuthorizationCredentials(
+            scheme="hello", credentials=token
+        ),
+    )
 
     assert id_token.email == test_email  # nosec
     assert id_token.aud == config_w_aud["audience"]
@@ -30,13 +38,18 @@ def test__authenticate_user_no_aud(
     test_email,
 ):
 
-    monkeypatch.setattr(auth.discovery, "configure", mock_discovery)
+    monkeypatch.setattr(fastapi_oidc.auth.discovery, "configure", mock_discovery)
 
     token = token_without_audience
 
-    authenticate_user = auth.get_auth(**no_audience_config)
+    auth = Auth(**no_audience_config)
 
-    id_token = IDToken(**authenticate_user(auth_header=f"Bearer {token}"))
+    id_token = auth.required(
+        security_scopes=SecurityScopes(scopes=[]),
+        authorization_credentials=HTTPAuthorizationCredentials(
+            scheme="hello", credentials=token
+        ),
+    )
 
     assert id_token.email == test_email  # nosec
 
@@ -47,12 +60,20 @@ def test__authenticate_user_returns_custom_tokens(
     class CustomToken(IDToken):
         custom_field: str = "OnlySlightlyBent"
 
-    monkeypatch.setattr(auth.discovery, "configure", mock_discovery)
+    monkeypatch.setattr(fastapi_oidc.auth.discovery, "configure", mock_discovery)
 
     token = token_without_audience
 
-    authenticate_user = auth.get_auth(**no_audience_config)
+    auth = Auth(
+        **no_audience_config,
+        idtoken_model=CustomToken,
+    )
 
-    custom_token = CustomToken(**authenticate_user(auth_header=f"Bearer {token}"))
+    custom_token = auth.required(
+        security_scopes=SecurityScopes(scopes=[]),
+        authorization_credentials=HTTPAuthorizationCredentials(
+            scheme="hello", credentials=token
+        ),
+    )
 
     assert custom_token.custom_field == "OnlySlightlyBent"

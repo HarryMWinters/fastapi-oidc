@@ -137,5 +137,7 @@ def mock_discovery(oidc_discovery, public_key):
         auth_server = lambda **_: oidc_discovery
         public_keys = lambda _: public_key
         signing_algos = lambda x: x["id_token_signing_alg_values_supported"]
+        authorization_url = lambda x: x["authorization_endpoint"]
+        token_url = lambda x: x["token_endpoint"]
 
     return lambda *args, **kwargs: functions

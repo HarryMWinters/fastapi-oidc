@@ -40,10 +40,6 @@ from jose.exceptions import JWTClaimsError
 from fastapi_oidc import discovery
 from fastapi_oidc.types import IDToken
 
-# class AuthBearer(HTTPBearer):
-#     async def __call__(self, request: Request):
-#         return await super().__call__(request)
-
 
 class OAuth2Facade(OAuth2):
     async def __call__(self, request: Request) -> Optional[str]:
@@ -232,7 +228,9 @@ class Auth:
             else:
                 return None
 
-        if not set(security_scopes.scopes).issubset(id_token["scope"].split(" ")):
+        if not set(security_scopes.scopes).issubset(
+            id_token.get("scope", "").split(" ")
+        ):
             if auto_error:
                 raise HTTPException(
                     status.HTTP_401_UNAUTHORIZED,
