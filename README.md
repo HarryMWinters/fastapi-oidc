@@ -50,6 +50,11 @@ pip install fastapi-oidc
 
 ## Usage
 
+See this example for how to use `docker-compose` to set up authentication with
+fastapi-oidc + keycloak.
+
+### Standard usage
+
 ```python3
 from typing import Optional
 
@@ -72,7 +77,12 @@ auth = Auth(
 app = FastAPI(
     title="Example",
     version="dev",
-    dependencies=[Depends(auth.implicit_scheme)],  # multiple schemes available
+    dependencies=[Depends(auth.implicit_scheme)],
+    # multiple available schemes:
+    # - oidc_scheme (displays all schemes supported by the auth server in docs)
+    # - password_scheme
+    # - implicit_scheme
+    # - authcode_scheme
 )
 
 @app.get("/protected")
@@ -90,12 +100,8 @@ class MyAuthenticatedUser(IDToken):
     custom_field: str
     custom_default: float = 3.14
 
-
-app = FastAPI()
-
-authenticate_user = get_auth(...)
-
-@app.get("/protected")
-def protected(user: MyAuthenticatedUser = Depends(authenticate_user)):
-    return {"Hello": "World", "custom_field": user.custom_field}
+auth = Auth(
+    ...,
+    idtoken_model=MyAuthenticatedUser,
+)
 ```

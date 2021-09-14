@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module for validating Open ID Connect ID Tokens.
+Module for validating Open ID Connect tokens.
 
 Usage
 =====
@@ -8,12 +8,11 @@ Usage
 .. code-block:: python3
 
     # This assumes you've already configured get_auth in your_app.py
-    from your_app.auth import authenticate_user
+    from your_app.auth import auth
 
     @app.get("/auth")
-    def test_auth(authenticated_user: AuthenticatedUser = Depends(authenticate_user)):
-        name = authenticated_user.preferred_username
-        return f"Hello {name}"
+    def test_auth(authenticated_user: IDToken = Depends(auth.required)):
+        return f"Hello {authenticated_user.preferred_username}"
 """
 
 from typing import List
@@ -65,8 +64,8 @@ class Auth:
             issuer (URL): (Optional) The issuer URL from your auth server.
             client_id (str): (Optional) The client_id configured by your auth server.
             scopes (Dict[str, str]): (Optional) A dictionary of scopes and their descriptions.
-            signature_cache_ttl (int): How many seconds your app should cache the
-                authorization server's public signatures.
+            signature_cache_ttl (int): (Optional) How many seconds your app should
+                cache the authorization server's public signatures.
             idtoken_model (Type): (Optional) The model to use for validating the ID Token.
 
         Raises:
@@ -123,7 +122,7 @@ class Auth:
             HTTPBearer()
         ),
     ) -> IDToken:
-        """Validate and parse OIDC ID token against issuer in config.
+        """Validate and parse OIDC ID token against configuration.
         Note this function caches the signatures and algorithms of the issuing
         server for signature_cache_ttl seconds.
 
@@ -157,7 +156,7 @@ class Auth:
             HTTPBearer(auto_error=False)
         ),
     ) -> Optional[IDToken]:
-        """Optionally validate and parse OIDC ID token against issuer in config.
+        """Optionally validate and parse OIDC ID token against configuration.
         Will not raise if the user is not authenticated. Note this function
         caches the signatures and algorithms of the issuing server for
         signature_cache_ttl seconds.
@@ -186,7 +185,7 @@ class Auth:
         authorization_credentials: Optional[HTTPAuthorizationCredentials],
         auto_error: bool,
     ) -> Optional[IDToken]:
-        """Validate and parse OIDC ID token against issuer in config.
+        """Validate and parse OIDC ID token against against configuration.
         Note this function caches the signatures and algorithms of the issuing server
         for signature_cache_ttl seconds.
 
