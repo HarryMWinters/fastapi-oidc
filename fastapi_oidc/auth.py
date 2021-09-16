@@ -233,15 +233,15 @@ class Auth(OAuth2):
                 },
             )
 
-            if self.client_id is not None:
-                token_audience = id_token["aud"]
-                if "azp" in id_token:
-                    if id_token["azp"] != self.client_id:
-                        raise JWTError(
-                            f"""Invalid authorized party "azp": {id_token["azp"]}"""
-                        )
-                elif type(token_audience) == list and len(token_audience) >= 1:
-                    raise JWTError('Missing authorized party "azp" in IDToken')
+            if (
+                type(id_token["aud"]) == list
+                and len(id_token["aud"]) >= 1
+                and "azp" not in id_token
+            ):
+                raise JWTError(
+                    'Missing authorized party "azp" in IDToken when there '
+                    "are multiple audiences"
+                )
 
         except (ExpiredSignatureError, JWTError, JWTClaimsError) as error:
             raise HTTPException(status_code=401, detail=f"Unauthorized: {error}")
