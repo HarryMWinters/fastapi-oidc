@@ -41,4 +41,4 @@ build-backend = "poetry.masonry.api"
 profile = "black"
 force_single_line = "True"
 known_first_party = []
-known_third_party = ["cachetools", "cryptography", "fastapi", "jose", "jwt", "pydantic", "pytest", "requests", "starlette", "uvicorn"]
+known_third_party = ["app", "cachetools", "cryptography", "fastapi", "jose", "jwt", "pydantic", "pytest", "requests", "starlette", "uvicorn"]

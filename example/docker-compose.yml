@@ -1,17 +1,14 @@
-version: '3'
+version: "3"
 
 services:
-
-#   test-fastapi-keycloak:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile
-#     restart: always
-#     depends_on:
-#       - keycloak
-#       # keycloak:
-#       #   condition: service_healthy
-#     network_mode: host
+  test-fastapi-keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    network_mode: host
 
   keycloak:
     image: jboss/keycloak:15.0.2
@@ -26,16 +23,20 @@ services:
       - DB_PASSWORD=password
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin
-      - KEYCLOAK_IMPORT=/tmp/my-realm-export.json
     ports:
       - 8080:8080
     depends_on:
       - keycloak-postgres
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://keycloak:8080"]
-    #   interval: 10s
-    #   timeout: 10s
-    #   retries: 2
+    environment:
+      - AUTH_OPENID_CONNECT_URL=http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration
+      - AUTH_ISSUER=http://localhost:8080/auth/realms/my-realm
+      - AUTH_CLIENT_ID=my-client
+    healthcheck:
+      test: "curl http://localhost:8080"
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 2m
 
   keycloak-postgres:
     image: postgres:13.4-alpine3.14

@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Install Task
         uses: arduino/setup-task@v1
 
@@ -37,9 +37,6 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
-
-      - name: Install library
-        run: poetry install --no-interaction
 
       - name: Run CI
         run: task ci

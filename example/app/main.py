@@ -1,6 +1,7 @@
 from typing import Optional
 
 import uvicorn
+from app.config import config
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import Security
@@ -12,9 +13,9 @@ from fastapi_oidc import Auth
 from fastapi_oidc import KeycloakIDToken
 
 auth = Auth(
-    openid_connect_url="http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration",
-    issuer="http://localhost:8080/auth/realms/my-realm",  # optional, verification only
-    client_id="my-client",  # optional, verification only
+    openid_connect_url=config.openid_connect_url,
+    issuer=config.issuer,  # optional, verification only
+    client_id=config.client_id,  # optional, verification only
     scopes=["email"],  # optional, verification only
     idtoken_model=KeycloakIDToken,  # optional, verification only
 )
