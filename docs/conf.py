@@ -18,11 +18,11 @@ from typing import List
 # -- Project information -----------------------------------------------------
 
 project = "fastapi-oidc"
-copyright = "2020, Harry M. Winters"
-author = "Harry M. Winters"
+copyright = "2020, Harry M. Winters, Richard Löwenström"
+author = "Harry M. Winters, Richard Löwenström"
 
 # The full version, including alpha/beta/rc tags
-release = "0.5.0"
+release = "0.0.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -46,9 +46,17 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "alabaster"
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path: List[str] = []
+
+autodoc_default_options = {
+    "members": True,
+    "member-order": "bysource",
+    "special-members": "__init__",
+    "undoc-members": True,
+    "exclude-members": "__weakref__",
+}

@@ -53,8 +53,12 @@ class Auth(OAuth2):
         signature_cache_ttl: int = 3600,
         idtoken_model: Type[IDToken] = IDToken,
     ):
-        """Configure authentication and use method :func:`require` or :func:`optional`
-        to check user credentials.
+        """Configure authentication :func:`auth = Auth(...) <Auth>` and then:
+        1. Show authentication in the interactive docs with :func:`Depends(auth) <Auth>`
+           when setting up FastAPI.
+        2. Use :func:`Security(auth.required) <Auth.required>` or
+           :func:`Security(auth.optional) <Auth.optional>` in your endpoints to
+           check user credentials.
 
         Args:
             openid_connect_url (URL): URL to the "well known" openid connect config
@@ -110,7 +114,7 @@ class Auth(OAuth2):
             auto_error=False,
         )
 
-    async def __call__(self, request: Request) -> Optional[str]:
+    async def __call__(self, request: Request) -> None:
         """Overriding OAuth2 method since we validate the token manually."""
         return None
 

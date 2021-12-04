@@ -14,10 +14,10 @@ class IDToken(BaseModel):
 
     See the specifications here. https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 
-    Attributes:
+    Parameters:
         iss (str): Issuer Identifier for the Issuer of the response.
         sub (str): Subject Identifier.
-        aud (str): Audience(s) that this ID Token is intended for.
+        aud (Union[str, List[str]]):: Audience(s) that this ID Token is intended for.
         exp (str): Expiration time on or after which the ID Token MUST NOT be accepted for processing.
         iat (iat): Time at which the JWT was issued.
 
