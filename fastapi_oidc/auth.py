@@ -11,7 +11,7 @@ Usage
     from your_app.auth import auth
 
     @app.get("/auth")
-    def test_auth(authenticated_user: IDToken = Depends(auth.required)):
+    def test_auth(authenticated_user: IDToken = Security(auth.required)):
         return f"Hello {authenticated_user.preferred_username}"
 """
 
@@ -51,7 +51,7 @@ class Auth(OAuth2):
         scopes: List[str] = list(),
         grant_types: List[GrantType] = [GrantType.IMPLICIT],
         signature_cache_ttl: int = 3600,
-        idtoken_model: Type = IDToken,
+        idtoken_model: Type[IDToken] = IDToken,
     ):
         """Configure authentication and use method :func:`require` or :func:`optional`
         to check user credentials.
@@ -65,7 +65,7 @@ class Auth(OAuth2):
             grant_types (List[GrantType]): (Optional) Grant types shown in docs.
             signature_cache_ttl (int): (Optional) How many seconds your app should
                 cache the authorization server's public signatures.
-            idtoken_model (Type): (Optional) The model to use for validating the ID Token.
+            idtoken_model (Type[IDToken]): (Optional) The model to use for validating the ID Token.
 
         Raises:
             Nothing intentional
@@ -81,34 +81,27 @@ class Auth(OAuth2):
         oidc_discoveries = self.discover.auth_server(
             openid_connect_url=self.openid_connect_url
         )
-        # scopes_dict = {
-        #     scope: "" for scope in self.discover.supported_scopes(oidc_discoveries)
-        # }
 
         flows = OAuthFlows()
         if GrantType.AUTHORIZATION_CODE in grant_types:
             flows.authorizationCode = OAuthFlowAuthorizationCode(
                 authorizationUrl=self.discover.authorization_url(oidc_discoveries),
                 tokenUrl=self.discover.token_url(oidc_discoveries),
-                # scopes=scopes_dict,
             )
 
         if GrantType.CLIENT_CREDENTIALS in grant_types:
             flows.clientCredentials = OAuthFlowClientCredentials(
                 tokenUrl=self.discover.token_url(oidc_discoveries),
-                # scopes=scopes_dict,
             )
 
         if GrantType.PASSWORD in grant_types:
             flows.password = OAuthFlowPassword(
                 tokenUrl=self.discover.token_url(oidc_discoveries),
-                # scopes=scopes_dict,
             )
 
         if GrantType.IMPLICIT in grant_types:
             flows.implicit = OAuthFlowImplicit(
                 authorizationUrl=self.discover.authorization_url(oidc_discoveries),
-                # scopes=scopes_dict,
             )
 
         super().__init__(
@@ -118,6 +111,7 @@ class Auth(OAuth2):
         )
 
     async def __call__(self, request: Request) -> Optional[str]:
+        """Overriding OAuth2 method since we validate the token manually."""
         return None
 
     def required(
@@ -137,7 +131,7 @@ class Auth(OAuth2):
                 behind the scenes by Depends.
 
         Return:
-            IDToken: Dictionary with IDToken information
+            self.idtoken_model: Dictionary with IDToken information
 
         raises:
             HTTPException(status_code=401, detail=f"Unauthorized: {err}")
@@ -172,7 +166,7 @@ class Auth(OAuth2):
                 behind the scenes by Depends.
 
         Return:
-            IDToken: Dictionary with IDToken information
+            self.idtoken_model: Dictionary with IDToken information
 
         raises:
             IDToken validation errors
@@ -201,7 +195,7 @@ class Auth(OAuth2):
                 is not authenticated.
 
         Return:
-            IDToken: Dictionary with IDToken information
+            self.idtoken_model: Dictionary with IDToken information
 
         raises:
             HTTPException(status_code=401, detail=f"Unauthorized: {err}")
