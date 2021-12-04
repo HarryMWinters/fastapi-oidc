@@ -57,9 +57,8 @@ def public_key(key):
 @pytest.fixture
 def config_w_aud():
     return {
-        "client_id": "CongenitalOptimist",
-        "audience": "NeverAgain",
-        "base_authorization_server_uri": "WhatAreTheCivilianApplications?",
+        "client_id": "NeverAgain",
+        "openid_connect_url": "WhatAreTheCivilianApplications?",
         "issuer": "PokeItWithAStick",
         "signature_cache_ttl": 6e3,
     }
@@ -68,8 +67,7 @@ def config_w_aud():
 @pytest.fixture
 def no_audience_config():
     return {
-        "client_id": "CongenitalOptimist",
-        "base_authorization_server_uri": "WhatAreTheCivilianApplications?",
+        "openid_connect_url": "WhatAreTheCivilianApplications?",
         "issuer": "PokeItWithAStick",
         "signature_cache_ttl": 6e3,
     }
@@ -77,7 +75,7 @@ def no_audience_config():
 
 @pytest.fixture
 def token_with_audience(private_key, config_w_aud, test_email) -> str:
-    audience: str = str(config_w_aud["audience"])
+    audience: str = str(config_w_aud["client_id"])
     issuer: str = str(config_w_aud["issuer"])
     now = int(time.time())
 
@@ -107,13 +105,12 @@ def token_with_audience(private_key, config_w_aud, test_email) -> str:
 @pytest.fixture
 def token_without_audience(private_key, no_audience_config, test_email) -> str:
     # Make a token where audience is client_id
-    client_id: str = str(no_audience_config["client_id"])
     issuer: str = str(no_audience_config["issuer"])
     now = int(time.time())
 
     return jwt.encode(
         {
-            "aud": client_id,
+            "aud": "NoAudience",
             "iss": issuer,
             "email": test_email,
             "name": "SweetAndFullOfGrace",
@@ -140,5 +137,8 @@ def mock_discovery(oidc_discovery, public_key):
         auth_server = lambda **_: oidc_discovery
         public_keys = lambda _: public_key
         signing_algos = lambda x: x["id_token_signing_alg_values_supported"]
+        authorization_url = lambda x: x["authorization_endpoint"]
+        token_url = lambda x: x["token_endpoint"]
+        supported_scopes = lambda x: x["scopes_supported"]
 
     return lambda *args, **kwargs: functions

@@ -1,14 +1,8 @@
 from typing import List
+from typing import Union
 
 from pydantic import BaseModel
 from pydantic import Extra
-
-
-class OIDCConfig(BaseModel):
-    client_id: str
-    base_authorization_server_uri: str
-    issuer: str
-    signature_cache_ttl: str
 
 
 class IDToken(BaseModel):
@@ -20,10 +14,10 @@ class IDToken(BaseModel):
 
     See the specifications here. https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 
-    Attributes:
+    Parameters:
         iss (str): Issuer Identifier for the Issuer of the response.
         sub (str): Subject Identifier.
-        aud (str): Audience(s) that this ID Token is intended for.
+        aud (Union[str, List[str]]):: Audience(s) that this ID Token is intended for.
         exp (str): Expiration time on or after which the ID Token MUST NOT be accepted for processing.
         iat (iat): Time at which the JWT was issued.
 
@@ -31,7 +25,7 @@ class IDToken(BaseModel):
 
     iss: str
     sub: str
-    aud: str
+    aud: Union[str, List[str]]
     exp: int
     iat: int
 
@@ -51,4 +45,14 @@ class OktaIDToken(IDToken):
     at_hash: str
     name: str
     email: str
+    preferred_username: str
+
+
+class KeycloakIDToken(IDToken):
+    """Pydantic Model for the IDToken returned by Keycloak's OIDC implementation."""
+
+    jti: str
+    name: str
+    email: str
+    email_verified: bool
     preferred_username: str

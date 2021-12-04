@@ -82,4 +82,4 @@
 tests:
 
 # (optional) list skipped test IDs here, eg '[B101, B406]':
-skips: [B101]
+skips: [B101, B104]

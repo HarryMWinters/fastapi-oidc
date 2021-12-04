@@ -1,11 +1,19 @@
 Welcome to fastapi-oidc's documentation!
 ========================================
 
-Verify ID Tokens Issued by Third Party
+Verify and decrypt 3rd party OpenID Connect tokens to protect your
+`FastAPI <https://github.com/tiangolo/fastapi>`_ endpoints.
 
-This is great if you just want to use something like Okta or google to handle
-your auth. All you need to do is verify the token and then you can extract
-user ID info from it.
+Easily used with authenticators such as:
+
+- `Keycloak <https://www.keycloak.org/>`_ (open source)
+- `SuperTokens <https://supertokens.io/>`_ (open source)
+- `Auth0 <https://auth0.com/>`_
+- `Okta <https://www.okta.com/products/authentication/>`_
+
+
+FastAPI's generated interactive documentation supports the grant types
+``authorization_code``, ``implicit``, ``password`` and ``client_credentials``.
 
 .. toctree::
    :maxdepth: 2
@@ -23,13 +31,13 @@ Installation
 
 .. code-block:: bash
 
-   pip install fastapi-oidc
+   poetry add fastapi-oidc
    
-Or, if you you're feeling hip...
+Or, for the old-timers:
 
 .. code-block:: bash
 
-   poetry add fastapi-oidc
+   pip install fastapi-oidc
 
 Example
 -------
@@ -40,25 +48,31 @@ Basic configuration for verifying OIDC tokens.
 
    from fastapi import Depends
    from fastapi import FastAPI
+   from fastapi import Security
+   from fastapi import status
 
-   # Set up our OIDC
-   from fastapi_oidc import IDToken
-   from fastapi_oidc import get_auth
+   from fastapi_oidc import Auth
+   from fastapi_oidc import GrantType
+   from fastapi_oidc import KeycloakIDToken
 
-   OIDC_config = {
-      "client_id": "0oa1e3pv9opbyq2Gm4x7",
-      "base_authorization_server_uri": "https://dev-126594.okta.com",
-      "issuer": "dev-126594.okta.com",
-      "signature_cache_ttl": 3600,
-   }
+   auth = Auth(
+      openid_connect_url="http://localhost:8080/auth/realms/my-realm/.well-known/openid-configuration",
+      issuer="http://localhost:8080/auth/realms/my-realm",  # optional, verification only
+      client_id="my-client",  # optional, verification only
+      scopes=["email"],  # optional, verification only
+      grant_types=[GrantType.IMPLICIT],  # optional, docs only
+      idtoken_model=KeycloakIDToken,  # optional, verification only
+   )
 
-   authenticate_user: Callable = get_auth(**OIDC_config)
-
-   app = FastAPI()
+   app = FastAPI(
+      title="Example",
+      version="dev",
+      dependencies=[Depends(auth)],
+   )
 
    @app.get("/protected")
-   def protected(id_token: IDToken = Depends(authenticate_user)):
-      return {"Hello": "World", "user_email": id_token.email}
+   def protected(id_token: KeycloakIDToken = Security(auth.required)):
+      return dict(message=f"You are {id_token.email}")
 
 
 API Reference
@@ -66,18 +80,16 @@ API Reference
 
 Auth
 ----
-
 .. automodule:: fastapi_oidc.auth
    :members:
 
-
-Discovery
----------
-
-.. automodule:: fastapi_oidc.discovery
+Grant Types
+-----------
+.. automodule:: fastapi_oidc.grant_types
    :members:
+   :undoc-members:
 
-Types
-------------
-.. automodule:: fastapi_oidc.types
+IDToken Types
+-------------
+.. automodule:: fastapi_oidc.idtoken_types
    :members:
