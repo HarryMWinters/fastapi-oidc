@@ -27,14 +27,23 @@
 Verify and decrypt 3rd party OpenID Connect tokens to protect your
 [FastAPI](https://github.com/tiangolo/fastapi) endpoints.
 
-Easily used with authenticators such as:
+Easily used with authentication services such as:
+
 - [Keycloak](https://www.keycloak.org/) (open source)
 - [SuperTokens](https://supertokens.io/) (open source)
 - [Auth0](https://auth0.com/)
 - [Okta](https://www.okta.com/products/authentication/)
 
-FastAPI's generated interactive documentation supports the grant flows
-`authorization_code`, `implicit`, `password` and `client_credentials`.
+FastAPI's generated interactive documentation supports the grant flows:
+
+```python3
+GrantType.AUTHORIZATION_CODE
+GrantType.IMPLICIT
+GrantType.PASSWORD
+GrantType.CLIENT_CREDENTIALS
+```
+
+![example documentation](example-docs.png)
 
 ## Installation
 
@@ -50,8 +59,9 @@ pip install fastapi-oidc
 
 ## Usage
 
-See this example for how to use `docker-compose` to set up authentication with
-fastapi-oidc + keycloak.
+See [this example](tree/master/example) for how to use
+`docker-compose` to set up authentication with `fastapi-third-party-auth` +
+[Keycloak](https://www.keycloak.org/).
 
 ### Standard usage
 

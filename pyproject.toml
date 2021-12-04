@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "fastapi-oidc"
 version = "0.0.0"
-description = "A simple library for parsing and verifying externally issued OIDC ID tokens in fastapi."
+description = "Simple library for using a third party authentication service like Keycloak or Auth0 with FastAPI."
 authors = ["HarryMWinters <harrymcwinters@gmail.com>", "Richard Löwenström <samedii@gmail.com>"]
 license = "MIT"
 readme = "README.md"
