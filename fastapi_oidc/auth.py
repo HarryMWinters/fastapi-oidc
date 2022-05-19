@@ -48,18 +48,16 @@ def get_auth(
     server code. The function it returns should be used to check user credentials.
 
     Args:
-        client_id (str): This string is provided when you register with your resource
-            server.
-        base_authorization_server_uri(URL): Everything before /.wellknow in your auth
-            server URL. I.E. https://dev-123456.okta.com
-        issuer (URL): Same as base_authorization. This is used to generating OpenAPI3.0
-            docs which is broken (in OpenAPI/FastAPI) right now.
-        signature_cache_ttl (int): How many seconds your app should cache the
-            authorization server's public signatures.
-        audience (str): (Optional) The audience string configured by your auth server.
-            If not set defaults to client_id
-        token_type (IDToken or subclass): (Optional) An optional class to be returned by
-            the authenticate_user function.
+        client_id: This string is provided when you register with your resource server.
+        base_authorization_server_uri: Everything before /.wellknow in your auth server
+            URL. I.E. https://dev-123456.okta.com
+        issuer: Same as base_authorization. This is used to generating OpenAPI3.0 docs
+            which is broken (in OpenAPI/FastAPI) right now.
+        signature_cache_ttl: How many seconds your app should cache the authorization
+            server's public signatures.
+        audience: The audience string configured by your auth server. If not set
+            defaults to client_id
+        token_type: An optional class to be returned by the authenticate_user function.
 
 
     Returns:
