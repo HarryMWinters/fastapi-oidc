@@ -32,7 +32,7 @@ class IDToken(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     iss: str
-    sub: str
+    sub: str | List[str]
     aud: str
     exp: int
     iat: int
