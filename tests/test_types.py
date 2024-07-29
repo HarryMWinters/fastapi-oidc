@@ -1,3 +1,4 @@
+# type: ignore
 import pydantic
 import pytest
 
@@ -21,7 +22,7 @@ def test_IDToken_only_requires_fields_in_OIDC_spec():
         iss="ClearAirTurbulence",
         sub="ValueJudgement",
         aud="SoberCounsel",
-        exp=3.12,
+        exp=312,
         iat=42,
     )
 
@@ -31,7 +32,7 @@ def test_IDToken_takes_arbitrary_extra_fields():
         iss="ClearAirTurbulence",
         sub="ValueJudgement",
         aud="SoberCounsel",
-        exp=3.12,
+        exp=312,
         iat=42,
         arbitrary_extra_field="Laskuil-Hliz",
     )
