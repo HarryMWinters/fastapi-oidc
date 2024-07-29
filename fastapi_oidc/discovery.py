@@ -13,7 +13,7 @@ def configure(*_, cache_ttl: int):
         for signing OIDC ID tokens.
         """
         keys_uri = OIDC_spec["jwks_uri"]
-        r = requests.get(keys_uri)
+        r = requests.get(keys_uri, timeout=15)
         keys = r.json()
         return keys
 
@@ -24,7 +24,7 @@ def configure(*_, cache_ttl: int):
     @cached(TTLCache(1, cache_ttl))
     def discover_auth_server(*_, base_url: str) -> Dict:
         discovery_url = f"{base_url}/.well-known/openid-configuration"
-        r = requests.get(discovery_url)
+        r = requests.get(discovery_url, timeout=15)
         # If the auth server is failing we can't verify tokens.
         # Soooo panic I guess?
         r.raise_for_status()
