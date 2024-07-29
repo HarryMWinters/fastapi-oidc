@@ -10,9 +10,9 @@ repository = "https://github.com/HarryMWinters/fastapi-oidc"
 documentation = "https://fastapi-oidc.readthedocs.io/en/latest/"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 fastapi = ">= 0.61.0"
-pydantic = ">= 1.6.1"
+pydantic = ">= 2.0.0"
 cachetools = ">= 4.1.1"
 requests = ">= 2.24.0"
 python-jose = {extras = ["cryptography"], version = ">= 3.2.0"}
