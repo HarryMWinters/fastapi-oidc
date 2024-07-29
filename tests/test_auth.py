@@ -1,3 +1,4 @@
+# type: ignore
 import pytest
 
 from fastapi_oidc import auth
