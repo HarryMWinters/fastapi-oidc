@@ -1,7 +1,7 @@
 from typing import List
 
 from pydantic import BaseModel
-from pydantic import Extra
+from pydantic import ConfigDict
 
 
 class OIDCConfig(BaseModel):
@@ -29,14 +29,13 @@ class IDToken(BaseModel):
 
     """
 
+    model_config = ConfigDict(extra="allow")
+
     iss: str
     sub: str
     aud: str
     exp: int
     iat: int
-
-    class Config:
-        extra = Extra.allow
 
 
 class OktaIDToken(IDToken):

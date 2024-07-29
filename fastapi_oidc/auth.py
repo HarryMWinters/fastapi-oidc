@@ -110,7 +110,7 @@ def get_auth(
                 # Disabled at_hash check since we aren't using the access token
                 options={"verify_at_hash": False},
             )
-            return token_type.parse_obj(token)
+            return token_type.model_validate(token)
 
         except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
             raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
