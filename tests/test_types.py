@@ -36,3 +36,13 @@ def test_IDToken_takes_arbitrary_extra_fields():
         iat=42,
         arbitrary_extra_field="Laskuil-Hliz",
     )
+
+
+def test_IDToken_takes_aud_list():
+    assert types.IDToken(
+        iss="ClearAirTurbulence",
+        sub="ValueJudgement",
+        aud=["SoberCounsel", "AnotherSoberCounsel"],
+        exp=3,
+        iat=42,
+    )
