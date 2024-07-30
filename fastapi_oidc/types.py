@@ -33,7 +33,7 @@ class IDToken(BaseModel):
 
     iss: str
     sub: str
-    aud: str
+    aud: str | list[str]
     exp: int
     iat: int
 
