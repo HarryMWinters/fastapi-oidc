@@ -34,7 +34,7 @@ from fastapi_oidc.types import IDToken
 
 
 def get_auth(
-    *_,
+    *,
     client_id: str,
     audience: Optional[str] = None,
     base_authorization_server_uri: str,
