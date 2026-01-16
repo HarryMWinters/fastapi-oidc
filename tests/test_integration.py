@@ -4,14 +4,17 @@ import time
 import uuid
 
 import jwt
-import pytest
-from fastapi import Depends, FastAPI
+from fastapi import Depends
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from fastapi_oidc import IDToken, get_auth
+from fastapi_oidc import IDToken
+from fastapi_oidc import get_auth
 
 
-def test_integration_with_fastapi_app(monkeypatch, mock_discovery, token_with_audience, config_w_aud):
+def test_integration_with_fastapi_app(
+    monkeypatch, mock_discovery, token_with_audience, config_w_aud
+):
     """Test full integration with a FastAPI application."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -37,8 +40,7 @@ def test_integration_with_fastapi_app(monkeypatch, mock_discovery, token_with_au
 
     # Test protected endpoint with valid token
     response = client.get(
-        "/protected",
-        headers={"Authorization": f"Bearer {token_with_audience}"}
+        "/protected", headers={"Authorization": f"Bearer {token_with_audience}"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -50,7 +52,9 @@ def test_integration_with_fastapi_app(monkeypatch, mock_discovery, token_with_au
     assert response.status_code == 403  # OpenIdConnect requires auth
 
 
-def test_integration_custom_token_type(monkeypatch, mock_discovery, token_with_audience, config_w_aud):
+def test_integration_custom_token_type(
+    monkeypatch, mock_discovery, token_with_audience, config_w_aud
+):
     """Test integration with custom token type."""
 
     class CustomToken(IDToken):
@@ -63,18 +67,22 @@ def test_integration_custom_token_type(monkeypatch, mock_discovery, token_with_a
 
     @app.get("/custom")
     def custom_endpoint(token: CustomToken = Depends(authenticate_user)):
-        return {"custom_field": token.custom_field, "email": getattr(token, "email", None)}
+        return {
+            "custom_field": token.custom_field,
+            "email": getattr(token, "email", None),
+        }
 
     client = TestClient(app)
     response = client.get(
-        "/custom",
-        headers={"Authorization": f"Bearer {token_with_audience}"}
+        "/custom", headers={"Authorization": f"Bearer {token_with_audience}"}
     )
     assert response.status_code == 200
     assert "custom_field" in response.json()
 
 
-def test_integration_expired_token(monkeypatch, mock_discovery, config_w_aud, test_email, private_key):
+def test_integration_expired_token(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
     """Test that expired tokens are rejected."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -105,12 +113,11 @@ def test_integration_expired_token(monkeypatch, mock_discovery, config_w_aud, te
 
     @app.get("/protected")
     def protected(token: IDToken = Depends(authenticate_user)):
-        return {"email": token.email}
+        return {"email": getattr(token, "email", None)}
 
     client = TestClient(app)
     response = client.get(
-        "/protected",
-        headers={"Authorization": f"Bearer {expired_token}"}
+        "/protected", headers={"Authorization": f"Bearer {expired_token}"}
     )
     assert response.status_code == 401
     assert "Unauthorized" in response.json()["detail"]
@@ -125,19 +132,20 @@ def test_integration_invalid_token(monkeypatch, mock_discovery, config_w_aud):
 
     @app.get("/protected")
     def protected(token: IDToken = Depends(authenticate_user)):
-        return {"email": token.email}
+        return {"email": getattr(token, "email", None)}
 
     client = TestClient(app)
 
     # Test with invalid token
     response = client.get(
-        "/protected",
-        headers={"Authorization": "Bearer invalid.jwt.token"}
+        "/protected", headers={"Authorization": "Bearer invalid.jwt.token"}
     )
     assert response.status_code == 401
 
 
-def test_integration_missing_required_claims(monkeypatch, mock_discovery, config_w_aud, private_key):
+def test_integration_missing_required_claims(
+    monkeypatch, mock_discovery, config_w_aud, private_key
+):
     """Test that tokens missing required claims are rejected."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -165,15 +173,16 @@ def test_integration_missing_required_claims(monkeypatch, mock_discovery, config
 
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get(
-        "/protected",
-        headers={"Authorization": f"Bearer {incomplete_token}"}
+        "/protected", headers={"Authorization": f"Bearer {incomplete_token}"}
     )
     # Should fail validation due to missing required field
     # ValidationError results in 500 internal server error in this test context
     assert response.status_code == 500
 
 
-def test_integration_multiple_endpoints(monkeypatch, mock_discovery, token_with_audience, config_w_aud):
+def test_integration_multiple_endpoints(
+    monkeypatch, mock_discovery, token_with_audience, config_w_aud
+):
     """Test application with multiple protected endpoints."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 

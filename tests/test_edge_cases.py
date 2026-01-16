@@ -2,7 +2,8 @@
 
 import time
 import uuid
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock
+from unittest.mock import patch
 
 import jwt
 import pytest
@@ -16,7 +17,7 @@ from fastapi_oidc.types import IDToken
 
 def test_discovery_handles_network_timeout():
     """Test that discovery handles network timeouts gracefully."""
-    with patch('requests.get') as mock_get:
+    with patch("requests.get") as mock_get:
         mock_get.side_effect = requests.Timeout("Connection timeout")
 
         discover = discovery.configure(cache_ttl=100)
@@ -27,7 +28,7 @@ def test_discovery_handles_network_timeout():
 
 def test_discovery_handles_http_error():
     """Test that discovery handles HTTP errors."""
-    with patch('requests.get') as mock_get:
+    with patch("requests.get") as mock_get:
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
         mock_get.return_value = mock_response
@@ -40,8 +41,10 @@ def test_discovery_handles_http_error():
 
 def test_discovery_handles_connection_error():
     """Test that discovery handles connection errors."""
-    with patch('requests.get') as mock_get:
-        mock_get.side_effect = requests.ConnectionError("Failed to establish connection")
+    with patch("requests.get") as mock_get:
+        mock_get.side_effect = requests.ConnectionError(
+            "Failed to establish connection"
+        )
 
         discover = discovery.configure(cache_ttl=100)
 
@@ -87,7 +90,9 @@ def test_get_auth_accepts_idtoken_subclass():
     assert callable(result)
 
 
-def test_multiple_audience_values(monkeypatch, mock_discovery, config_w_aud, test_email, private_key):
+def test_multiple_audience_values(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
     """Test handling tokens with multiple audience values."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -120,7 +125,9 @@ def test_multiple_audience_values(monkeypatch, mock_discovery, config_w_aud, tes
     assert config_w_aud["audience"] in result.aud
 
 
-def test_single_audience_as_string(monkeypatch, mock_discovery, config_w_aud, test_email, private_key):
+def test_single_audience_as_string(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
     """Test handling tokens with single audience as string."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -152,7 +159,9 @@ def test_single_audience_as_string(monkeypatch, mock_discovery, config_w_aud, te
     assert result.aud == config_w_aud["audience"]
 
 
-def test_token_with_extra_fields(monkeypatch, mock_discovery, config_w_aud, test_email, private_key):
+def test_token_with_extra_fields(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
     """Test that tokens with extra fields are handled correctly."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -186,7 +195,9 @@ def test_token_with_extra_fields(monkeypatch, mock_discovery, config_w_aud, test
     assert result.custom_claim_1 == "value1"
 
 
-def test_wrong_issuer(monkeypatch, mock_discovery, config_w_aud, test_email, private_key):
+def test_wrong_issuer(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
     """Test that tokens with wrong issuer are rejected."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -217,7 +228,9 @@ def test_wrong_issuer(monkeypatch, mock_discovery, config_w_aud, test_email, pri
         authenticate_user(auth_header=f"Bearer {wrong_issuer_token}")
 
 
-def test_wrong_audience(monkeypatch, mock_discovery, config_w_aud, test_email, private_key):
+def test_wrong_audience(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
     """Test that tokens with wrong audience are rejected."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -248,7 +261,9 @@ def test_wrong_audience(monkeypatch, mock_discovery, config_w_aud, test_email, p
         authenticate_user(auth_header=f"Bearer {wrong_audience_token}")
 
 
-def test_token_about_to_expire(monkeypatch, mock_discovery, config_w_aud, test_email, private_key):
+def test_token_about_to_expire(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
     """Test tokens that are about to expire but still valid."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 
@@ -280,7 +295,9 @@ def test_token_about_to_expire(monkeypatch, mock_discovery, config_w_aud, test_e
     assert result.email == test_email
 
 
-def test_bearer_token_extraction(monkeypatch, mock_discovery, token_with_audience, config_w_aud):
+def test_bearer_token_extraction(
+    monkeypatch, mock_discovery, token_with_audience, config_w_aud
+):
     """Test that bearer token is correctly extracted from auth header."""
     monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
 

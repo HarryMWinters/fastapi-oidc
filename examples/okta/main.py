@@ -9,10 +9,12 @@ This example demonstrates:
 
 import os
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from fastapi_oidc import IDToken, get_auth
+from fastapi_oidc import IDToken
+from fastapi_oidc import get_auth
 
 # Load configuration from environment
 OKTA_DOMAIN = os.getenv("OKTA_DOMAIN", "dev-123456.okta.com")
@@ -21,15 +23,13 @@ AUDIENCE = os.getenv("OKTA_AUDIENCE")  # Optional, defaults to CLIENT_ID
 CACHE_TTL = int(os.getenv("OKTA_CACHE_TTL", "3600"))
 
 # Configure OIDC authentication
-OIDC_config = {
-    "client_id": CLIENT_ID,
-    "audience": AUDIENCE if AUDIENCE else CLIENT_ID,
-    "base_authorization_server_uri": f"https://{OKTA_DOMAIN}",
-    "issuer": OKTA_DOMAIN,
-    "signature_cache_ttl": CACHE_TTL,
-}
-
-authenticate_user = get_auth(**OIDC_config)
+authenticate_user = get_auth(
+    client_id=CLIENT_ID,
+    audience=AUDIENCE if AUDIENCE else CLIENT_ID,
+    base_authorization_server_uri=f"https://{OKTA_DOMAIN}",
+    issuer=OKTA_DOMAIN,
+    signature_cache_ttl=CACHE_TTL,
+)
 
 # Create FastAPI application
 app = FastAPI(
@@ -148,11 +148,11 @@ def forbidden_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
 
-    print(f"Starting FastAPI OIDC Example with Okta")
+    print("Starting FastAPI OIDC Example with Okta")
     print(f"Okta Domain: {OKTA_DOMAIN}")
     print(f"Client ID: {CLIENT_ID}")
     print(f"Audience: {AUDIENCE if AUDIENCE else CLIENT_ID}")
     print(f"Cache TTL: {CACHE_TTL} seconds")
-    print(f"\nVisit http://localhost:8000/docs for interactive API documentation")
+    print("\nVisit http://localhost:8000/docs for interactive API documentation")
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)  # nosec B104
