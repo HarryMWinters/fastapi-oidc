@@ -12,7 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        # Python 3.13 excluded temporarily due to dependency compatibility issues
+        # (uvloop, pydantic-core C API changes). Will add back when deps catch up.
+        python-version: ["3.10", "3.11", "3.12"]
       fail-fast: false
 
     steps:
