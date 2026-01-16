@@ -1,0 +1,364 @@
+# fastapi-oidc Agent Instructions
+
+This file provides context and guidelines for AI coding assistants working on the fastapi-oidc project.
+
+## Project Overview
+
+**fastapi-oidc** is a Python library for verifying and decrypting third-party OIDC ID tokens in FastAPI applications. It provides a simple, type-safe way to authenticate users via OpenID Connect providers like Okta, Auth0, Google, Azure AD, and others.
+
+**Key Features:**
+- Automatic OIDC discovery via `.well-known` endpoints
+- JWT signature verification with cached public keys
+- Type-safe token validation using Pydantic
+- FastAPI-native dependency injection
+- Support for custom token models
+
+**Target Python Version:** 3.10+
+**API Stability:** Backward compatibility is critical - all public APIs must remain stable
+
+## Project Structure
+
+```
+fastapi-oidc/
+├── fastapi_oidc/          # Main package
+│   ├── __init__.py        # Public API exports (get_auth, IDToken, OktaIDToken)
+│   ├── auth.py            # Core authentication logic
+│   ├── discovery.py       # OIDC discovery and key fetching
+│   ├── types.py           # Pydantic models for tokens
+│   ├── exceptions.py      # Custom exceptions
+│   └── py.typed           # PEP 561 marker for type hints
+├── tests/                 # Test suite (pytest)
+│   ├── conftest.py        # Shared fixtures
+│   ├── test_auth.py       # Authentication tests
+│   ├── test_types.py      # Type validation tests
+│   ├── test_integration.py # FastAPI integration tests
+│   └── test_edge_cases.py # Edge cases and error handling
+├── examples/              # Working example applications
+│   ├── okta/             # Complete Okta example
+│   └── README.md         # Example documentation
+├── docs/                 # Sphinx documentation
+└── pyproject.toml        # Poetry configuration
+
+```
+
+## Core Concepts
+
+### Authentication Flow
+1. User calls `get_auth()` with OIDC configuration
+2. Returns an `authenticate_user` function for FastAPI dependency injection
+3. On each request, `authenticate_user`:
+   - Extracts JWT from Authorization header
+   - Fetches OIDC configuration and signing keys (cached)
+   - Verifies JWT signature and claims
+   - Returns typed `IDToken` instance
+
+### Key Components
+
+**`get_auth()`** - Factory function that creates the authentication dependency
+- Parameters: client_id, issuer, base_authorization_server_uri, signature_cache_ttl, audience (optional), token_type (optional)
+- Returns: Callable that validates tokens and returns IDToken instances
+
+**`IDToken`** - Pydantic model for standard OIDC tokens
+- Required fields: iss, sub, aud, exp, iat
+- Accepts arbitrary extra fields (extra="allow")
+
+**`discovery.py`** - OIDC discovery and key management
+- Caches discovery documents and signing keys using TTL-based caching
+- Handles network requests to authentication servers
+
+## Coding Standards
+
+### General Principles
+1. **API Stability:** Never break backward compatibility for public APIs
+2. **Type Safety:** All public functions must have complete type hints
+3. **Python 3.10+:** Use modern syntax (dict/list instead of Dict/List)
+4. **Simplicity:** Keep code simple and focused - avoid over-engineering
+5. **Security:** Always validate inputs, especially JWTs and OIDC configurations
+
+### Style Guidelines
+
+**Type Hints:**
+```python
+# Good - Modern Python 3.10+ syntax
+def process_token(data: dict[str, Any]) -> IDToken:
+    pass
+
+# Avoid - Old typing imports
+from typing import Dict, List
+def process_token(data: Dict[str, Any]) -> IDToken:
+    pass
+```
+
+**Docstrings:**
+- Use Google-style docstrings for all public APIs
+- Include Args, Returns, Raises sections
+- Provide examples for complex functions
+
+**Example:**
+```python
+def get_auth(
+    *,
+    client_id: str,
+    issuer: str,
+    signature_cache_ttl: int,
+) -> Callable[[str], IDToken]:
+    """Create an authentication dependency for FastAPI.
+
+    Args:
+        client_id: OAuth client ID from your provider.
+        issuer: Token issuer identifier.
+        signature_cache_ttl: Cache duration for signing keys in seconds.
+
+    Returns:
+        Authentication function for use with FastAPI Depends().
+
+    Raises:
+        TokenSpecificationError: If token_type is invalid.
+
+    Example:
+        >>> authenticate_user = get_auth(
+        ...     client_id="your-client-id",
+        ...     issuer="auth.example.com",
+        ...     signature_cache_ttl=3600,
+        ... )
+    """
+```
+
+### Testing Requirements
+
+**Coverage:** Maintain 80%+ test coverage (current: 91%)
+
+**Test Categories:**
+1. **Unit tests** (`test_auth.py`, `test_types.py`) - Test individual components
+2. **Integration tests** (`test_integration.py`) - Test with FastAPI TestClient
+3. **Edge cases** (`test_edge_cases.py`) - Error handling, boundary conditions
+
+**Testing Patterns:**
+```python
+# Use fixtures for common test data
+def test_authenticate_user(monkeypatch, mock_discovery, token_with_audience, config_w_aud):
+    monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
+    authenticate_user = get_auth(**config_w_aud)
+    result = authenticate_user(auth_header=f"Bearer {token_with_audience}")
+    assert result.email == expected_email
+```
+
+**Important:** PyJWT 2.x returns strings directly, not bytes. Don't use `.decode("UTF-8")` on tokens.
+
+## Development Workflow
+
+### Setup
+```bash
+# Install dependencies
+poetry install
+
+# Set up pre-commit hooks
+poetry run pre-commit install
+```
+
+### Running Tests
+```bash
+# Run all tests with coverage
+poetry run pytest --cov=fastapi_oidc --cov-report=term-missing
+
+# Run specific test file
+poetry run pytest tests/test_auth.py -v
+
+# Run specific test
+poetry run pytest tests/test_auth.py::test_authenticate_user -v
+```
+
+### Code Quality Checks
+```bash
+# Run all pre-commit hooks
+poetry run pre-commit run --all-files
+
+# Individual checks
+poetry run black fastapi_oidc tests      # Format code
+poetry run isort fastapi_oidc tests      # Sort imports
+poetry run mypy fastapi_oidc             # Type check
+poetry run flake8 fastapi_oidc tests     # Lint
+poetry run bandit -r fastapi_oidc        # Security scan
+```
+
+### Before Committing
+1. ✅ All tests pass (`poetry run pytest`)
+2. ✅ Coverage ≥ 80% (`poetry run pytest --cov`)
+3. ✅ All pre-commit hooks pass (`poetry run pre-commit run --all-files`)
+4. ✅ No mypy errors (`poetry run mypy fastapi_oidc`)
+5. ✅ Documentation updated if needed
+
+## Common Tasks
+
+### Adding a New OIDC Provider Example
+1. Create directory: `examples/{provider}/`
+2. Add files: `main.py`, `README.md`, `.env.example`
+3. Follow the pattern from `examples/okta/`
+4. Include setup instructions and troubleshooting
+5. Test the example manually
+
+### Adding a Custom Token Type
+```python
+# In fastapi_oidc/types.py
+class CustomToken(IDToken):
+    """Custom token with additional fields."""
+    custom_field: str
+    custom_optional: int = 0
+
+# Usage
+authenticate_user = get_auth(**config, token_type=CustomToken)
+```
+
+### Updating Dependencies
+```bash
+# Update all dependencies
+poetry update
+
+# Update specific dependency
+poetry update requests
+
+# After updating, always run tests
+poetry run pytest
+```
+
+## Security Considerations
+
+**Critical Security Rules:**
+1. **Never disable signature verification** in production
+2. **Always validate issuer** - prevents token substitution attacks
+3. **Use HTTPS** for all OIDC endpoint communication
+4. **Validate audience** - ensures tokens are intended for this application
+5. **Cache responsibly** - balance security and performance (3600s recommended)
+
+**Token Validation Chain:**
+```
+1. Extract from Authorization header
+2. Fetch OIDC discovery document (cached)
+3. Fetch signing keys (cached)
+4. Verify JWT signature with public key
+5. Verify claims (iss, aud, exp)
+6. Parse into Pydantic model
+7. Return typed IDToken
+```
+
+## Common Issues & Solutions
+
+### Issue: "Signature verification failed"
+**Causes:**
+- Wrong client_id or issuer
+- Token expired
+- Auth server unreachable
+
+**Debug:**
+```python
+# Check OIDC discovery
+import requests
+response = requests.get(f"{base_uri}/.well-known/openid-configuration")
+print(response.json())
+```
+
+### Issue: "Invalid audience"
+**Solution:** Set `audience` parameter explicitly if it differs from `client_id`
+
+### Issue: Tests failing with PyJWT
+**Solution:** Ensure you're using PyJWT 2.x syntax (no `.decode()` needed)
+
+## API Reference
+
+### Public API (Exported from `__init__.py`)
+
+**Functions:**
+- `get_auth()` - Create authentication dependency
+
+**Classes:**
+- `IDToken` - Standard OIDC token model
+- `OktaIDToken` - Okta-specific token model
+
+**Exceptions:**
+- `TokenSpecificationError` - Raised when invalid token_type provided
+
+### Internal API (Not for public use)
+
+**`discovery.py`:**
+- `configure()` - Create cached discovery functions
+- Should not be called directly by users
+
+## Documentation
+
+### Updating Docs
+```bash
+# Build Sphinx docs locally
+poetry run sphinx-build docs docs/_build
+
+# View generated docs
+open docs/_build/index.html
+```
+
+### Documentation Files
+- `README.md` - Quick start and usage examples
+- `CONTRIBUTING.md` - Developer guidelines
+- `SECURITY.md` - Security policy and best practices
+- `CHANGELOG.md` - Version history
+- `docs/index.rst` - Sphinx documentation source
+
+## Dependencies
+
+### Production Dependencies
+- `fastapi` (≥0.61.0) - Web framework
+- `pydantic` (≥2.0.0) - Data validation
+- `python-jose[cryptography]` (≥3.2.0) - JWT handling
+- `requests` (≥2.24.0) - HTTP client
+- `cachetools` (≥4.1.1) - Caching
+
+### Development Dependencies
+- `pytest` (^8.0.0) - Testing framework
+- `pytest-cov` (^5.0.0) - Coverage reporting
+- `black` (^24.0.0) - Code formatter
+- `mypy` (^1.11.0) - Type checker
+- `pre-commit` (^3.0.0) - Git hooks
+
+## Version History
+
+**Current Version:** 0.0.11
+
+**Recent Changes:**
+- Added py.typed for PEP 561 compliance
+- Fixed get_auth signature (bare `*` for keyword-only args)
+- Comprehensive modernization (dependencies, docs, tests)
+
+## Contact & Resources
+
+- **Documentation:** https://fastapi-oidc.readthedocs.io
+- **Repository:** https://github.com/HarryMWinters/fastapi-oidc
+- **Issues:** https://github.com/HarryMWinters/fastapi-oidc/issues
+- **PyPI:** https://pypi.org/project/fastapi-oidc
+
+## Agent-Specific Notes
+
+**When making changes:**
+1. Always read existing code before modifying
+2. Run tests after any code change
+3. Update CHANGELOG.md for significant changes
+4. Add docstrings for new public APIs
+5. Consider backward compatibility impact
+6. Add tests for new functionality
+
+**Code review checklist:**
+- [ ] Type hints present and correct
+- [ ] Docstrings for public APIs
+- [ ] Tests added for new functionality
+- [ ] Backward compatible (no breaking changes)
+- [ ] Security implications considered
+- [ ] Documentation updated
+- [ ] CHANGELOG.md updated
+
+**Communication style:**
+- Be concise but thorough
+- Explain security implications
+- Provide examples for complex changes
+- Reference line numbers when discussing code
+
+---
+
+Last Updated: 2026-01-15
+Version: 1.0.0
