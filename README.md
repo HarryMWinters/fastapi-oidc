@@ -384,4 +384,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by Harry M. Winters**
+**Made with ❤️ by [Harry M. Winters](linkedin.com/in/code-bio)**
