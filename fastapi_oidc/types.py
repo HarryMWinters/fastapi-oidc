@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import BaseModel
 from pydantic import ConfigDict
 
@@ -44,7 +42,7 @@ class OktaIDToken(IDToken):
     auth_time: int
     ver: int
     jti: str
-    amr: List[str]
+    amr: list[str]
     idp: str
     nonce: str
     at_hash: str

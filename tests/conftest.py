@@ -1,7 +1,7 @@
 import json
-import os
 import time
 import uuid
+from pathlib import Path
 
 import jwt
 import pytest
@@ -9,7 +9,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-FIXTURES_DIRECTORY = os.path.join(os.path.dirname(__file__), "fixtures")
+FIXTURES_DIRECTORY = Path(__file__).parent / "fixtures"
 
 
 KEY = rsa.generate_private_key(
@@ -19,7 +19,7 @@ KEY = rsa.generate_private_key(
 
 @pytest.fixture
 def oidc_discovery():
-    with open(FIXTURES_DIRECTORY + "/AuthServerDiscovery.json") as f:
+    with open(FIXTURES_DIRECTORY / "AuthServerDiscovery.json") as f:
         OIDC_DISCOVERY_RESPONSE = json.load(f)
 
     return OIDC_DISCOVERY_RESPONSE
@@ -101,7 +101,7 @@ def token_with_audience(private_key, config_w_aud, test_email) -> str:
         },
         private_key,
         algorithm="RS256",
-    ).decode("UTF-8")
+    )
 
 
 @pytest.fixture
@@ -131,7 +131,7 @@ def token_without_audience(private_key, no_audience_config, test_email) -> str:
         },
         private_key,
         algorithm="RS256",
-    ).decode("UTF-8")
+    )
 
 
 @pytest.fixture

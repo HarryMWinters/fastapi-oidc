@@ -3,6 +3,12 @@ repos:
     rev: v4.6.0
     hooks:
       - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
@@ -34,3 +40,10 @@ repos:
     hooks:
       - id: bandit
         entry: bandit -c .bandit.yml
+
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.8.0
+    hooks:
+      - id: poetry-check
+      - id: poetry-lock
+        args: ["--check"]

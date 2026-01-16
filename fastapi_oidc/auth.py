@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-Module for validating OIDC ID Tokens. Configured via config.py 
+Module for validating OIDC ID Tokens. Configured via config.py
 
 Usage
 =====
@@ -44,7 +43,7 @@ def get_auth(
 ) -> Callable[[str], IDToken]:
     """Take configurations and return the authenticate_user function.
 
-    This function should only be invoked once at the beggining of your
+    This function should only be invoked once at the beginning of your
     server code. The function it returns should be used to check user credentials.
 
     Args:

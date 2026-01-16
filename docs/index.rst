@@ -24,7 +24,7 @@ Installation
 .. code-block:: bash
 
    pip install fastapi-oidc
-   
+
 Or, if you you're feeling hip...
 
 .. code-block:: bash

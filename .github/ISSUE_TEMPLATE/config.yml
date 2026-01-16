@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://fastapi-oidc.readthedocs.io
+    about: Check the documentation for guides and API reference
+  - name: Security Issues
+    url: https://github.com/HarryMWinters/fastapi-oidc/blob/master/SECURITY.md
+    about: Report security vulnerabilities privately (see SECURITY.md)

@@ -3,7 +3,7 @@ version: "3"
 dotenv: [".env"]
 
 tasks:
-  
+
   ci:
     desc: "Run code analyzers from pre-commit and unit tests"
     deps: [install-poetry, create-virtual-env]
@@ -84,5 +84,5 @@ tasks:
     deps: [create-virtual-env]
     cmds:
       - |
-        cd docs && 
+        cd docs &&
         source $HOME/.poetry/env && poetry run make html
