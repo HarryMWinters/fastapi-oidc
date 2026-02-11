@@ -3,6 +3,7 @@ name: Test
 
 on:
   push:
+    branches: [master]
   pull_request:
     types: [opened, synchronize]
   workflow_dispatch:
@@ -12,21 +13,33 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        # Python 3.13+ excluded temporarily due to dependency compatibility issues.
+        # PyO3 (used by cryptography and pydantic-core) has limited support for
+        # newer Python versions when building from source on Linux. Prebuilt wheels
+        # may work on some platforms but CI needs reliable cross-platform builds.
+        # Will add back when the ecosystem fully supports these versions.
         python-version: ["3.10", "3.11", "3.12"]
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Task
-        uses: arduino/setup-task@v1
+        uses: arduino/setup-task@v2
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
       - name: Run CI
         run: task ci
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.12'
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
