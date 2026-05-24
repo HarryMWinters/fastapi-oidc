@@ -89,3 +89,14 @@ def test_get_auth_configures_openidconnect_correctly():
     # Para verificarlo, podemos inspeccionar las variables del closure
     # Pero lo más directo es asegurar que no lanza excepción y se configura
     assert callable(auth_func)
+
+def test_get_auth_configures_openidconnect_correctly():
+    client_id = "test_client"
+    base_uri = "https://auth.example.com"
+    auth_func = get_auth(
+        client_id=client_id,
+        base_authorization_server_uri=base_uri,
+        issuer=base_uri,
+        signature_cache_ttl=60
+    )
+    assert callable(auth_func)
