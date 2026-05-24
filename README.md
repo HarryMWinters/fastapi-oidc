@@ -385,3 +385,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Made with ❤️ by [Harry M. Winters](linkedin.com/in/code-bio)**
+
+## Installation
+
+`pip install -e .`
+
+## Running Tests
+
+`pytest`
