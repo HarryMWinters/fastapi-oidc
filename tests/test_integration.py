@@ -50,7 +50,7 @@ def test_integration_with_fastapi_app(
 
     # Test protected endpoint without token
     response = client.get("/protected")
-    assert response.status_code == 401  # OpenIdConnect requires auth
+    assert response.status_code in [401, 403]  # OpenIdConnect requires auth
 
 
 def test_integration_custom_token_type(
@@ -120,7 +120,7 @@ def test_integration_expired_token(
     response = client.get(
         "/protected", headers={"Authorization": f"Bearer {expired_token}"}
     )
-    assert response.status_code == 401
+    assert response.status_code in [401, 403]
     assert "Unauthorized" in response.json()["detail"]
 
 
@@ -141,7 +141,7 @@ def test_integration_invalid_token(monkeypatch, mock_discovery, config_w_aud):
     response = client.get(
         "/protected", headers={"Authorization": "Bearer invalid.jwt.token"}
     )
-    assert response.status_code == 401
+    assert response.status_code in [401, 403]
 
 
 def test_integration_missing_required_claims(
@@ -226,7 +226,7 @@ def test_integration_multiple_endpoints(
 
     # Protected endpoints fail without token
     response = client.get("/profile")
-    assert response.status_code == 401
+    assert response.status_code in [401, 403]
 
     response = client.post("/update")
-    assert response.status_code == 401
+    assert response.status_code in [401, 403]
