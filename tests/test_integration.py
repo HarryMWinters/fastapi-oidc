@@ -1,3 +1,4 @@
+ source /workspaces/fastapi-oidc/.venv/bin/activate
 """Integration tests using FastAPI TestClient."""
 
 import time
