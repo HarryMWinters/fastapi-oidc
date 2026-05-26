@@ -15,6 +15,7 @@ Usage
         return f"Hello {name}"
 """
 
+from collections.abc import Iterable
 from typing import Callable
 from typing import Optional
 from typing import Type
@@ -37,7 +38,7 @@ def get_auth(
     client_id: str,
     audience: Optional[str] = None,
     base_authorization_server_uri: str,
-    issuer: str,
+    issuer: str | Iterable[str],
     signature_cache_ttl: int,
     token_type: Type[IDToken] = IDToken,
 ) -> Callable[[str], IDToken]:
