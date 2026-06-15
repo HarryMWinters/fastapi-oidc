@@ -113,7 +113,7 @@ See the [examples directory](examples/) for provider-specific configurations (co
 |-----------|------|-------------|
 | `client_id` | `str` | OAuth client ID from your provider |
 | `base_authorization_server_uri` | `str` | Base URL of your auth server (e.g., `https://dev-123456.okta.com`) |
-| `issuer` | `str` | Token issuer identifier (usually matches base URI domain) |
+| `issuer` | `str \| Iterable[str]` | Token issuer identifier(s) (usually matches base URI domain). Pass an iterable to accept tokens from any of several issuers |
 | `signature_cache_ttl` | `int` | Cache duration for signing keys in seconds (recommended: 3600) |
 
 ### Optional Parameters
@@ -142,6 +142,16 @@ authenticate_user = get_auth(
     audience="https://yourapi.url.com/api",
     base_authorization_server_uri="https://auth.example.com",
     issuer="auth.example.com",
+    signature_cache_ttl=3600,
+)
+```
+
+**With Multiple Issuers:**
+```python3
+authenticate_user = get_auth(
+    client_id="your-client-id",
+    base_authorization_server_uri="https://auth.example.com",
+    issuer=["auth.example.com", "auth.internal.example.com"],
     signature_cache_ttl=3600,
 )
 ```
