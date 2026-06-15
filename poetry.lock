@@ -2048,6 +2048,33 @@ files = [
 ]
 
 [[package]]
+name = "types-pyasn1"
+version = "0.6.0.20260408"
+description = "Typing stubs for pyasn1"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "types_pyasn1-0.6.0.20260408-py3-none-any.whl", hash = "sha256:ee7fbd98bce61193c5d4f8f7812fa53cddc5b8cc5ceb9fcda6eea539947c6d6b"},
+    {file = "types_pyasn1-0.6.0.20260408.tar.gz", hash = "sha256:32dc90927adbe504fd2eee83ae30cf5ef934e5db0d1d94886071fed47eb50c8c"},
+]
+
+[[package]]
+name = "types-python-jose"
+version = "3.5.0.20260408"
+description = "Typing stubs for python-jose"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "types_python_jose-3.5.0.20260408-py3-none-any.whl", hash = "sha256:968d8a8eac1ff9da249d6335a2bb9f82288d59ba23afe91fcc2662eb9f485e2a"},
+    {file = "types_python_jose-3.5.0.20260408.tar.gz", hash = "sha256:3f8dccdc327bfffea7a81084ea1cea722fa499f13c1d04f7978b491dd36e0cf1"},
+]
+
+[package.dependencies]
+types-pyasn1 = "*"
+
+[[package]]
 name = "types-requests"
 version = "2.32.0.20240712"
 description = "Typing stubs for requests"
@@ -2360,4 +2387,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "1248a31ffeee9152986fcad59a288780906745bd46c9bd064647de3d973fa883"
+content-hash = "eeed420bb29f20908cb8c3b9b2b0b1838f910eb23d5d45d816adb2a9b3769a5f"
