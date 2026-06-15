@@ -26,4 +26,4 @@ from fastapi_oidc.types import IDToken
 from fastapi_oidc.types import OktaIDToken
 
 __all__ = ["get_auth", "IDToken", "OktaIDToken"]
-__version__ = "0.0.11"
+__version__ = "0.1.0"

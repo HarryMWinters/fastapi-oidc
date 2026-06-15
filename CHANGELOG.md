@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-14
+
 ### Added
 - Support for multiple accepted issuers: `get_auth(issuer=...)` now accepts an
   iterable of issuer strings in addition to a single string
@@ -48,7 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - pyjwt: 1.7.1 → 2.0.0
   - pre-commit: 2.13.0 → 3.0.0
 - Updated GitHub Actions to latest versions (checkout@v4, setup-python@v5, setup-task@v2)
-- Added Python 3.13 to CI test matrix
 - Standardized type hints to use modern Python 3.10+ syntax (`dict`, `list` instead of `Dict`, `List`)
 - Modernized test utilities to use `pathlib.Path` instead of `os.path`
 - Enhanced README.md with comprehensive documentation sections
@@ -70,5 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - get_auth function signature uses bare `*` for keyword-only arguments
 
-[Unreleased]: https://github.com/HarryMWinters/fastapi-oidc/compare/v0.0.11...HEAD
+[Unreleased]: https://github.com/HarryMWinters/fastapi-oidc/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/HarryMWinters/fastapi-oidc/compare/v0.0.11...v0.1.0
 [0.0.11]: https://github.com/HarryMWinters/fastapi-oidc/releases/tag/v0.0.11
