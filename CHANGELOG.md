@@ -27,6 +27,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples directory with working applications for multiple OIDC providers
 
 ### Changed
+- Bumped dependencies (consolidating outstanding Dependabot updates):
+  - fastapi: 0.111.1 → 0.137.0 (pulls in starlette 1.x)
+  - sphinx: 7.4.7 → 8.1.3
+  - types-cachetools: 0.1.10 → 6.2.0
+  - pyasn1: 0.6.2 → 0.6.3; h11: 0.14.0 → 0.16.0
+  - codecov/codecov-action: v6 → v7
+- Added `httpx` and `uvicorn[standard]` as explicit dev dependencies. Newer
+  fastapi no longer installs them transitively, but `TestClient` requires `httpx`
+  and the example apps (`examples/`) are run with `uvicorn`
 - Updated Poetry configuration to modern format (`poetry.core`, `group.dev.dependencies`)
 - Updated all dev dependencies to current versions:
   - black: 19.10b0 → 24.0.0
