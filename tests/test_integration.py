@@ -49,7 +49,7 @@ def test_integration_with_fastapi_app(
 
     # Test protected endpoint without token
     response = client.get("/protected")
-    assert response.status_code == 403  # OpenIdConnect requires auth
+    assert response.status_code == 401  # OpenIdConnect requires auth
 
 
 def test_integration_custom_token_type(
@@ -225,7 +225,7 @@ def test_integration_multiple_endpoints(
 
     # Protected endpoints fail without token
     response = client.get("/profile")
-    assert response.status_code == 403
+    assert response.status_code == 401
 
     response = client.post("/update")
-    assert response.status_code == 403
+    assert response.status_code == 401
