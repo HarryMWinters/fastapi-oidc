@@ -19,7 +19,7 @@ requests = ">= 2.24.0"
 python-jose = {extras = ["cryptography"], version = ">= 3.2.0"}
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
+pytest = ">=8,<10"
 pytest-cov = "^5.0.0"
 black = ">=24,<27"
 pylint = "^3.0.0"
