@@ -228,6 +228,76 @@ def test_wrong_issuer(
         authenticate_user(auth_header=f"Bearer {wrong_issuer_token}")
 
 
+def test_multiple_issuers_accepts_any_configured(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
+    """Tokens from any issuer in the configured iterable are accepted."""
+    monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
+
+    second_issuer = "second-issuer.com"
+    now = int(time.time())
+    token = jwt.encode(
+        {
+            "aud": config_w_aud["audience"],
+            "iss": second_issuer,  # Not the primary issuer, but still allowed
+            "email": test_email,
+            "sub": "test-sub",
+            "exp": now + 300,
+            "iat": now,
+            "auth_time": now,
+            "ver": "1",
+            "jti": str(uuid.uuid4()),
+            "amr": [],
+            "idp": "",
+            "nonce": "",
+            "at_hash": "",
+        },
+        private_key,
+        algorithm="RS256",
+    )
+
+    config = {**config_w_aud, "issuer": [config_w_aud["issuer"], second_issuer]}
+    authenticate_user = get_auth(**config)
+
+    result = authenticate_user(auth_header=f"Bearer {token}")
+    assert result.iss == second_issuer
+    assert result.email == test_email
+
+
+def test_multiple_issuers_rejects_unlisted(
+    monkeypatch, mock_discovery, config_w_aud, test_email, private_key
+):
+    """Tokens whose issuer is not in the configured iterable are rejected."""
+    monkeypatch.setattr("fastapi_oidc.auth.discovery.configure", mock_discovery)
+
+    now = int(time.time())
+    token = jwt.encode(
+        {
+            "aud": config_w_aud["audience"],
+            "iss": "unlisted-issuer.com",  # Not in the allowed list
+            "email": test_email,
+            "sub": "test-sub",
+            "exp": now + 300,
+            "iat": now,
+            "auth_time": now,
+            "ver": "1",
+            "jti": str(uuid.uuid4()),
+            "amr": [],
+            "idp": "",
+            "nonce": "",
+            "at_hash": "",
+        },
+        private_key,
+        algorithm="RS256",
+    )
+
+    config = {**config_w_aud, "issuer": ["first-issuer.com", "second-issuer.com"]}
+    authenticate_user = get_auth(**config)
+
+    with pytest.raises(Exception):  # Should raise HTTPException
+        authenticate_user(auth_header=f"Bearer {token}")
+
+
 def test_wrong_audience(
     monkeypatch, mock_discovery, config_w_aud, test_email, private_key
 ):

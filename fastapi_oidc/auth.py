@@ -15,6 +15,7 @@ Usage
         return f"Hello {name}"
 """
 
+from collections.abc import Iterable
 from typing import Callable
 from typing import Optional
 from typing import Type
@@ -37,7 +38,7 @@ def get_auth(
     client_id: str,
     audience: Optional[str] = None,
     base_authorization_server_uri: str,
-    issuer: str,
+    issuer: str | Iterable[str],
     signature_cache_ttl: int,
     token_type: Type[IDToken] = IDToken,
 ) -> Callable[[str], IDToken]:
@@ -50,8 +51,10 @@ def get_auth(
         client_id: This string is provided when you register with your resource server.
         base_authorization_server_uri: Everything before /.wellknow in your auth server
             URL. I.E. https://dev-123456.okta.com
-        issuer: Same as base_authorization. This is used to generating OpenAPI3.0 docs
-            which is broken (in OpenAPI/FastAPI) right now.
+        issuer: The expected value(s) of the token's ``iss`` claim. Pass a single
+            string to accept one issuer, or an iterable of strings to accept tokens
+            from any of several issuers (useful when the same auth server is reachable
+            under more than one issuer identifier).
         signature_cache_ttl: How many seconds your app should cache the authorization
             server's public signatures.
         audience: The audience string configured by your auth server. If not set
