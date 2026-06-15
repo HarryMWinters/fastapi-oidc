@@ -13,12 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Python 3.13+ excluded temporarily due to dependency compatibility issues.
-        # PyO3 (used by cryptography and pydantic-core) has limited support for
-        # newer Python versions when building from source on Linux. Prebuilt wheels
-        # may work on some platforms but CI needs reliable cross-platform builds.
-        # Will add back when the ecosystem fully supports these versions.
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
       fail-fast: false
 
     steps:

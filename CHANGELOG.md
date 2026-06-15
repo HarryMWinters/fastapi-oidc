@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Examples directory with working applications for multiple OIDC providers
 
 ### Changed
+- Added Python 3.13 and 3.14 to the CI test matrix (the dependency ecosystem now
+  ships prebuilt wheels for these versions, so the temporary exclusion is removed)
 - Bumped dependencies (consolidating outstanding Dependabot updates):
   - fastapi: 0.111.1 → 0.137.0 (pulls in starlette 1.x)
   - sphinx: 7.4.7 → 8.1.3
