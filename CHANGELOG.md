@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Support for multiple accepted issuers: `get_auth(issuer=...)` now accepts an
+  iterable of issuer strings in addition to a single string
+- `types-python-jose` stubs so mypy can type-check the `jose` imports
 - Comprehensive modernization of development tooling and dependencies
 - Coverage reporting in CI/CD pipeline with Codecov integration
 - Dependabot configuration for automated dependency updates
