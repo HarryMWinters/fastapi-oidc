@@ -16,21 +16,64 @@ Usage
 """
 
 from collections.abc import Iterable
+from typing import Any
 from typing import Callable
 from typing import Optional
 from typing import Type
 
+import jwt
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi.security import OpenIdConnect
-from jose import ExpiredSignatureError
-from jose import JWTError
-from jose import jwt
-from jose.exceptions import JWTClaimsError
+from jwt import PyJWK
+from jwt import PyJWKSet
+from jwt.exceptions import InvalidKeyError
+from jwt.exceptions import PyJWTError
 
 from fastapi_oidc import discovery
 from fastapi_oidc.exceptions import TokenSpecificationError
 from fastapi_oidc.types import IDToken
+
+
+def _select_signing_key(keys: Any, id_token: str) -> Any:
+    """Pick the key that should verify ``id_token`` out of ``keys``.
+
+    ``keys`` is normally the JWKS document served by the auth server's
+    ``jwks_uri`` (a dict with a ``"keys"`` list). In that case the key is chosen
+    by matching the token header's ``kid``. A JWKS with a single key is accepted
+    for tokens that carry no ``kid``. Anything that is not a JWKS document (a PEM
+    string, an already-built :class:`jwt.PyJWK`, ...) is handed to PyJWT
+    unchanged.
+
+    Args:
+        keys: The JWKS document, or a single key understood by :func:`jwt.decode`.
+        id_token: The compact-serialized JWT being verified.
+
+    Returns:
+        A key acceptable by :func:`jwt.decode`.
+
+    Raises:
+        jwt.exceptions.PyJWTError: If no usable key matches the token.
+    """
+    if not isinstance(keys, dict) or "keys" not in keys:
+        return keys
+
+    jwk_set = PyJWKSet.from_dict(keys)
+    kid = jwt.get_unverified_header(id_token).get("kid")
+
+    if kid is not None:
+        try:
+            return jwk_set[kid]
+        except KeyError as err:
+            raise InvalidKeyError(f"No signing key found for kid={kid!r}") from err
+
+    if len(jwk_set.keys) == 1:
+        key: PyJWK = jwk_set.keys[0]
+        return key
+
+    raise InvalidKeyError(
+        "Token has no 'kid' header and the JWKS contains more than one key"
+    )
 
 
 def get_auth(
@@ -82,6 +125,12 @@ def get_auth(
 
     discover = discovery.configure(cache_ttl=signature_cache_ttl)
 
+    # PyJWT accepts a str or a container of str for the issuer. Materialise
+    # arbitrary iterables (generators, sets, ...) so membership checks work.
+    expected_issuer: str | list[str] = (
+        issuer if isinstance(issuer, str) else list(issuer)
+    )
+
     def authenticate_user(auth_header: str = Depends(oauth2_scheme)) -> IDToken:
         """Validate and parse OIDC ID token against issuer in config.
         Note this function caches the signatures and algorithms of the issuing server
@@ -99,22 +148,21 @@ def get_auth(
         """
         id_token = auth_header.split(" ")[-1]
         OIDC_discoveries = discover.auth_server(base_url=base_authorization_server_uri)
-        key = discover.public_keys(OIDC_discoveries)
+        keys = discover.public_keys(OIDC_discoveries)
         algorithms = discover.signing_algos(OIDC_discoveries)
 
         try:
+            key = _select_signing_key(keys, id_token)
             token = jwt.decode(
                 id_token,
                 key,
-                algorithms,
+                algorithms=algorithms,
                 audience=audience if audience else client_id,
-                issuer=issuer,
-                # Disabled at_hash check since we aren't using the access token
-                options={"verify_at_hash": False},
+                issuer=expected_issuer,
             )
             return token_type.model_validate(token)
 
-        except (ExpiredSignatureError, JWTError, JWTClaimsError) as err:
+        except PyJWTError as err:
             raise HTTPException(status_code=401, detail=f"Unauthorized: {err}")
 
     return authenticate_user
