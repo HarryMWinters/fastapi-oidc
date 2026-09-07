@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Replaced `python-jose` with `PyJWT` for token verification.** `python-jose`
+  pulls in `ecdsa`, `rsa` and `pyasn1`, which have carried unfixable or
+  slow-to-fix security advisories (notably the Minerva timing attack in
+  `python-ecdsa`, which upstream will not fix). PyJWT with the `crypto` extra
+  needs only `cryptography`. The public `get_auth()` API and the
+  `authenticate_user` dependency it returns are unchanged; invalid tokens still
+  raise `HTTPException(401)`.
+- Signing keys are now selected from the provider's JWKS by the token's `kid`
+  header. A JWKS with a single key is still accepted for tokens without a `kid`.
+- The minimum PyJWT version is 2.13.0, which includes fixes for algorithm
+  allow-list bypass and key-confusion issues when verifying with JWK keys.
+
+### Removed
+- `python-jose[cryptography]` runtime dependency and the `types-python-jose`
+  dev dependency.
+
 ## [0.1.0] - 2026-06-14
 
 ### Added
