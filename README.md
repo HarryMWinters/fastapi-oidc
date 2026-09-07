@@ -389,7 +389,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Built with [FastAPI](https://fastapi.tiangolo.com/)
-- Token validation via [python-jose](https://github.com/mpdavis/python-jose)
+- Token validation via [PyJWT](https://github.com/jpadilla/pyjwt)
 - Type validation with [Pydantic](https://pydantic-docs.helpmanual.io/)
 
 ---
