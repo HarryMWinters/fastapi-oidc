@@ -28,7 +28,7 @@ def configure(*_, cache_ttl: int):
 
     @cached(TTLCache(1, cache_ttl), key=lambda d: d["jwks_uri"])
     def get_authentication_server_public_keys(
-        OIDC_spec: dict[str, Any]
+        OIDC_spec: dict[str, Any],
     ) -> dict[str, Any]:
         """Retrieve the public keys used by the authentication server.
 
@@ -39,10 +39,13 @@ def configure(*_, cache_ttl: int):
             Dictionary containing the public keys in JWKS format.
 
         Raises:
+            requests.HTTPError: If the JWKS endpoint returns an error status.
             requests.RequestException: If the request to fetch keys fails.
         """
         keys_uri = OIDC_spec["jwks_uri"]
         r = requests.get(keys_uri, timeout=15)
+        # Without this a 4xx/5xx body would be parsed as (and cached as) a JWKS.
+        r.raise_for_status()
         keys = r.json()
         return keys
 

@@ -8,6 +8,13 @@ updates:
     labels:
       - "dependencies"
       - "python"
+    groups:
+      # One PR per week for routine bumps instead of one PR per package.
+      # Major versions stay separate so breaking changes get their own review.
+      python-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -17,3 +24,7 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

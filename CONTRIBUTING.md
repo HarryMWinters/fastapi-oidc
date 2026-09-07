@@ -128,6 +128,33 @@ poetry run bandit -r fastapi_oidc
    - Fill out the pull request template
    - Submit for review
 
+## Releasing (maintainers)
+
+Releases are published to PyPI by the `Release` GitHub workflow using
+[Trusted Publishing](https://docs.pypi.org/trusted-publishers/), so no PyPI
+token lives in this repository or in CI secrets.
+
+1. Bump the version and move the `Unreleased` changelog entries under it:
+   ```bash
+   poetry version <major|minor|patch>
+   ```
+   Update `fastapi_oidc/__init__.py` (`__version__`) and `docs/conf.py`
+   (`release`) to the same value, then merge that PR.
+
+2. Create a GitHub release whose tag is `v<version>` (for example `v0.2.0`).
+   Publishing the release triggers the workflow. It builds the sdist and wheel,
+   checks that the tag matches `pyproject.toml`, and uploads to PyPI.
+
+One-time setup, if the PyPI project has not been linked yet: on
+[pypi.org](https://pypi.org/manage/project/fastapi-oidc/settings/publishing/)
+add a GitHub publisher with owner `HarryMWinters`, repository `fastapi-oidc`,
+workflow `release.yaml`, environment `pypi`. Then create a `pypi` environment
+under the repository's Settings → Environments (optionally with required
+reviewers).
+
+`task publish` still works as a manual fallback; it needs a PyPI API token in
+`PYPI_TOKEN` (see `.env.example`).
+
 ## Coding Standards
 
 ### General Guidelines

@@ -311,15 +311,17 @@ open docs/_build/index.html
 - `cachetools` (≥4.1.1) - Caching
 
 ### Development Dependencies
-- `pytest` (^8.0.0) - Testing framework
-- `pytest-cov` (^5.0.0) - Coverage reporting
-- `black` (^24.0.0) - Code formatter
-- `mypy` (^1.11.0) - Type checker
-- `pre-commit` (^3.0.0) - Git hooks
+- `pytest` - Testing framework
+- `pytest-cov` - Coverage reporting
+- `black` - Code formatter
+- `mypy` - Type checker
+- `pre-commit` - Git hooks
+
+Exact constraints live in `pyproject.toml`; do not duplicate them here.
 
 ## Version History
 
-**Current Version:** 0.0.11
+**Current Version:** see `pyproject.toml` (`poetry version --short`)
 
 **Recent Changes:**
 - Added py.typed for PEP 561 compliance
@@ -360,5 +362,5 @@ open docs/_build/index.html
 
 ---
 
-Last Updated: 2026-01-15
+Last Updated: 2026-09-07
 Version: 1.0.0

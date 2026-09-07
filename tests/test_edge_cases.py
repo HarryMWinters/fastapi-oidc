@@ -52,6 +52,34 @@ def test_discovery_handles_connection_error():
             discover.auth_server(base_url="https://example.com")
 
 
+def test_public_keys_raises_on_http_error():
+    """A failing JWKS endpoint must not be parsed (or cached) as a key set."""
+    with patch("requests.get") as mock_get:
+        mock_response = Mock()
+        mock_response.raise_for_status.side_effect = requests.HTTPError("503")
+        mock_get.return_value = mock_response
+
+        discover = discovery.configure(cache_ttl=100)
+
+        with pytest.raises(requests.HTTPError):
+            discover.public_keys({"jwks_uri": "https://example.com/keys"})
+        mock_response.json.assert_not_called()
+
+
+def test_public_keys_returns_jwks_and_caches_by_uri():
+    with patch("requests.get") as mock_get:
+        mock_response = Mock()
+        mock_response.json.return_value = {"keys": []}
+        mock_get.return_value = mock_response
+
+        discover = discovery.configure(cache_ttl=100)
+        spec = {"jwks_uri": "https://example.com/keys"}
+
+        assert discover.public_keys(spec) == {"keys": []}
+        assert discover.public_keys(spec) == {"keys": []}
+        assert mock_get.call_count == 1
+
+
 def test_get_auth_rejects_non_idtoken_subclass():
     """Test that get_auth validates token_type is IDToken subclass."""
 
