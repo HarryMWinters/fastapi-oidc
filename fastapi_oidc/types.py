@@ -8,7 +8,7 @@ class OIDCConfig(BaseModel):
     client_id: str
     base_authorization_server_uri: str
     issuer: str | Iterable[str]
-    signature_cache_ttl: str
+    signature_cache_ttl: int
 
 
 class IDToken(BaseModel):

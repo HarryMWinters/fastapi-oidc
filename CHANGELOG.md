@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `Release` GitHub workflow that builds and publishes to PyPI via Trusted
+  Publishing when a GitHub release is published (no PyPI token in the repo).
+  It refuses to publish if the release tag does not match the package version.
+- Dependabot now groups minor/patch updates into one weekly PR per ecosystem.
+- Tests for JWKS fetching: HTTP errors propagate and results are cached by URI.
+
+### Fixed
+- The JWKS fetch in `discovery.py` now calls `raise_for_status()`, so an error
+  response from the provider is raised instead of being parsed and cached as a
+  key set.
+- `OIDCConfig.signature_cache_ttl` is typed as `int` (it was `str`).
+
 ### Changed
 - **Replaced `python-jose` with `PyJWT` for token verification.** `python-jose`
   pulls in `ecdsa`, `rsa` and `pyasn1`, which have carried unfixable or
@@ -19,6 +32,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   header. A JWKS with a single key is still accepted for tokens without a `kid`.
 - The minimum PyJWT version is 2.13.0, which includes fixes for algorithm
   allow-list bypass and key-confusion issues when verifying with JWK keys.
+- Refreshed the dependency lock: cryptography 46.0.7 → 50.0.1 (clears four
+  advisories), fastapi 0.137 → 0.141, starlette 1.3 → 1.6, pydantic 2.13.5,
+  requests 2.34, cachetools 7.1.
+- Dev tooling: pre-commit 4.x, pylint 4.x, uvicorn 0.52, `httpx2` replaces
+  `httpx` for `TestClient` (Starlette 1.3+ deprecates `httpx` there).
+- Pre-commit hook pins updated to match the Poetry-managed tool versions
+  (black 26.5, isort 9, mypy 2.3, flake8 7.3, bandit 1.9, poetry 2.4). The
+  `poetry-lock --check` hook became `poetry-check --lock` (Poetry 2 syntax).
+- CI: the test workflow declares read-only `permissions`, cancels superseded
+  runs of the same ref, and passes a token to `setup-task` so it stops hitting
+  the anonymous GitHub API rate limit.
+- `task publish` now expects a PyPI API token in `PYPI_TOKEN` instead of a
+  username/password pair, which PyPI no longer accepts. `.env` is no longer
+  tracked; copy `.env.example` instead.
 
 ### Removed
 - `python-jose[cryptography]` runtime dependency and the `types-python-jose`

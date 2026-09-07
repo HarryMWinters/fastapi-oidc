@@ -1,0 +1,55 @@
+# Build and publish to PyPI when a GitHub release is published.
+#
+# Uses PyPI Trusted Publishing (OIDC), so no API token is stored in this repo.
+# One-time setup on PyPI: project fastapi-oidc -> Settings -> Publishing ->
+# add a GitHub publisher with owner HarryMWinters, repository fastapi-oidc,
+# workflow release.yaml, environment pypi.
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: snok/install-poetry@v1
+      - name: Check that the tag matches the package version
+        if: github.event_name == 'release'
+        run: |
+          pkg="$(poetry version --short)"
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$pkg" != "$tag" ]; then
+            echo "pyproject.toml version ($pkg) does not match release tag ($tag)" >&2
+            exit 1
+          fi
+      - run: poetry build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/fastapi-oidc/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
