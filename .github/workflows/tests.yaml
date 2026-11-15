@@ -25,6 +25,8 @@ jobs:
 
       - name: Install Task
         uses: arduino/setup-task@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Poetry
         uses: snok/install-poetry@v1

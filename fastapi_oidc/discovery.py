@@ -28,7 +28,7 @@ def configure(*_, cache_ttl: int):
 
     @cached(TTLCache(1, cache_ttl), key=lambda d: d["jwks_uri"])
     def get_authentication_server_public_keys(
-        OIDC_spec: dict[str, Any]
+        OIDC_spec: dict[str, Any],
     ) -> dict[str, Any]:
         """Retrieve the public keys used by the authentication server.
 
