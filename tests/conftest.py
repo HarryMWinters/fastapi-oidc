@@ -8,6 +8,7 @@ import pytest
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from jwt.algorithms import RSAAlgorithm
 
 FIXTURES_DIRECTORY = Path(__file__).parent / "fixtures"
 
@@ -136,9 +137,72 @@ def token_without_audience(private_key, no_audience_config, test_email) -> str:
 
 @pytest.fixture
 def mock_discovery(oidc_discovery, public_key):
+    """Discovery stub whose ``public_keys`` returns a bare PEM key."""
+
     class functions:
         auth_server = lambda **_: oidc_discovery
         public_keys = lambda _: public_key
         signing_algos = lambda x: x["id_token_signing_alg_values_supported"]
 
     return lambda *args, **kwargs: functions
+
+
+KID = "TheHydrogenSonata"
+
+
+@pytest.fixture
+def jwks(key):
+    """A JWKS document (what a real ``jwks_uri`` serves) containing the test key."""
+    jwk = RSAAlgorithm.to_jwk(key.public_key(), as_dict=True)
+    return {"keys": [{**jwk, "kid": KID, "alg": "RS256", "use": "sig"}]}
+
+
+@pytest.fixture
+def mock_discovery_jwks(oidc_discovery, jwks):
+    """Discovery stub whose ``public_keys`` returns a JWKS document."""
+
+    class functions:
+        auth_server = lambda **_: oidc_discovery
+        public_keys = lambda _: jwks
+        signing_algos = lambda x: x["id_token_signing_alg_values_supported"]
+
+    return lambda *args, **kwargs: functions
+
+
+@pytest.fixture
+def make_token(private_key, config_w_aud, test_email):
+    """Factory for RS256 tokens valid for ``config_w_aud``; accepts JWT header overrides."""
+
+    def _make(headers=None, algorithm="RS256", **claims):
+        now = int(time.time())
+        payload = {
+            "aud": config_w_aud["audience"],
+            "iss": config_w_aud["issuer"],
+            "email": test_email,
+            "sub": "foo",
+            "exp": now + 30,
+            "iat": now,
+            **claims,
+        }
+        return jwt.encode(payload, private_key, algorithm=algorithm, headers=headers)
+
+    return _make
+
+
+@pytest.fixture
+def make_discovery(oidc_discovery):
+    """Factory for discovery stubs with custom public keys and signing algorithms."""
+
+    def _make(keys, algorithms=None):
+        spec = dict(oidc_discovery)
+        if algorithms is not None:
+            spec["id_token_signing_alg_values_supported"] = list(algorithms)
+
+        class functions:
+            auth_server = lambda **_: spec
+            public_keys = lambda _: keys
+            signing_algos = lambda x: x["id_token_signing_alg_values_supported"]
+
+        return lambda *args, **kwargs: functions
+
+    return _make

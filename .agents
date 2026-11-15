@@ -306,7 +306,7 @@ open docs/_build/index.html
 ### Production Dependencies
 - `fastapi` (≥0.61.0) - Web framework
 - `pydantic` (≥2.0.0) - Data validation
-- `python-jose[cryptography]` (≥3.2.0) - JWT handling
+- `pyjwt[crypto]` (≥2.13.0) - JWT handling
 - `requests` (≥2.24.0) - HTTP client
 - `cachetools` (≥4.1.1) - Caching
 

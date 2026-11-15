@@ -173,7 +173,7 @@ No formal security audits have been conducted yet. We welcome community security
 ## Cryptographic Dependencies
 
 This library relies on:
-- `python-jose[cryptography]` - JWT handling and verification
+- `pyjwt[crypto]` - JWT handling and verification
 - `cryptography` - Cryptographic primitives
 
 These are well-established, actively maintained libraries with strong security track records.
