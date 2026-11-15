@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   header. A JWKS with a single key is still accepted for tokens without a `kid`.
 - The minimum PyJWT version is 2.13.0, which includes fixes for algorithm
   allow-list bypass and key-confusion issues when verifying with JWK keys.
+- A JWKS entry that omits `alg` is verified with the token's `alg`, provided it
+  is one the provider advertises in `id_token_signing_alg_values_supported`.
+  (PyJWT would otherwise bind such keys to RS256 and reject RS384/RS512/PS*
+  tokens that `python-jose` accepted.) Entries that declare `alg` are only used
+  for that algorithm.
+- `iat` is not compared against the local clock, matching `python-jose`. PyJWT
+  allows no leeway by default, which would turn provider clock skew into 401s on
+  freshly issued tokens. `exp` and `nbf` are still enforced.
 
 ### Removed
 - `python-jose[cryptography]` runtime dependency and the `types-python-jose`

@@ -185,3 +185,116 @@ def test__authenticate_user_accepts_issuer_generator(
     id_token = authenticate_user(auth_header=f"Bearer {make_token()}")
 
     assert id_token.email == test_email
+
+
+def test__authenticate_user_accepts_iat_slightly_in_future(
+    monkeypatch, mock_discovery, make_token, config_w_aud, test_email
+):
+    """Provider clock skew must not reject fresh tokens (python-jose parity)."""
+    import time
+
+    monkeypatch.setattr(auth.discovery, "configure", mock_discovery)
+
+    authenticate_user = auth.get_auth(**config_w_aud)
+    future_iat = int(time.time()) + 30
+    id_token = authenticate_user(auth_header=f"Bearer {make_token(iat=future_iat)}")
+
+    assert id_token.email == test_email
+
+
+def test__authenticate_user_accepts_rs512_when_jwk_has_no_alg(
+    monkeypatch, make_discovery, jwks, make_token, config_w_aud, test_email
+):
+    """A JWK without "alg" must verify any algorithm the provider advertises."""
+    from tests.conftest import KID
+
+    jwk_no_alg = {k: v for k, v in jwks["keys"][0].items() if k != "alg"}
+    discovery = make_discovery({"keys": [jwk_no_alg]}, algorithms=["RS256", "RS512"])
+    monkeypatch.setattr(auth.discovery, "configure", discovery)
+
+    authenticate_user = auth.get_auth(**config_w_aud)
+    token = make_token(headers={"kid": KID}, algorithm="RS512")
+    id_token = authenticate_user(auth_header=f"Bearer {token}")
+
+    assert id_token.email == test_email
+
+
+def test__authenticate_user_rejects_alg_outside_allow_list_when_jwk_has_no_alg(
+    monkeypatch, make_discovery, jwks, make_token, config_w_aud
+):
+    """Binding an alg-less JWK to the token alg must not bypass the allow-list."""
+    from fastapi import HTTPException
+
+    from tests.conftest import KID
+
+    jwk_no_alg = {k: v for k, v in jwks["keys"][0].items() if k != "alg"}
+    discovery = make_discovery({"keys": [jwk_no_alg]}, algorithms=["RS256"])
+    monkeypatch.setattr(auth.discovery, "configure", discovery)
+
+    authenticate_user = auth.get_auth(**config_w_aud)
+    token = make_token(headers={"kid": KID}, algorithm="RS512")
+
+    with pytest.raises(HTTPException) as exc_info:
+        authenticate_user(auth_header=f"Bearer {token}")
+
+    assert exc_info.value.status_code == 401
+    assert "alg" in exc_info.value.detail
+
+
+def test__authenticate_user_rejects_explicit_jwk_alg_mismatch(
+    monkeypatch, make_discovery, jwks, make_token, config_w_aud
+):
+    """A JWK that declares "alg" is only used for that algorithm."""
+    from fastapi import HTTPException
+
+    from tests.conftest import KID
+
+    assert jwks["keys"][0]["alg"] == "RS256"
+    discovery = make_discovery(jwks, algorithms=["RS256", "RS512"])
+    monkeypatch.setattr(auth.discovery, "configure", discovery)
+
+    authenticate_user = auth.get_auth(**config_w_aud)
+    token = make_token(headers={"kid": KID}, algorithm="RS512")
+
+    with pytest.raises(HTTPException) as exc_info:
+        authenticate_user(auth_header=f"Bearer {token}")
+
+    assert exc_info.value.status_code == 401
+
+
+def test__authenticate_user_rejects_hs256_against_rsa_jwks(
+    monkeypatch, make_discovery, jwks, config_w_aud, test_email
+):
+    """Algorithm confusion: an HMAC token can never verify against an RSA JWK."""
+    import time
+
+    from fastapi import HTTPException
+
+    from tests.conftest import KID
+
+    jwk_no_alg = {k: v for k, v in jwks["keys"][0].items() if k != "alg"}
+    # Even with HS256 in the allow-list the RSA key must not act as an HMAC secret.
+    discovery = make_discovery({"keys": [jwk_no_alg]}, algorithms=["RS256", "HS256"])
+    monkeypatch.setattr(auth.discovery, "configure", discovery)
+
+    now = int(time.time())
+    forged = jwt.encode(
+        {
+            "aud": config_w_aud["audience"],
+            "iss": config_w_aud["issuer"],
+            "email": test_email,
+            "sub": "foo",
+            "exp": now + 30,
+            "iat": now,
+        },
+        "NotTheRealSecret-NotTheRealSecret-NotTheRealSecret",
+        algorithm="HS256",
+        headers={"kid": KID},
+    )
+
+    authenticate_user = auth.get_auth(**config_w_aud)
+
+    with pytest.raises(HTTPException) as exc_info:
+        authenticate_user(auth_header=f"Bearer {forged}")
+
+    assert exc_info.value.status_code == 401

@@ -26,7 +26,7 @@ from fastapi import Depends
 from fastapi import HTTPException
 from fastapi.security import OpenIdConnect
 from jwt import PyJWK
-from jwt import PyJWKSet
+from jwt.exceptions import InvalidAlgorithmError
 from jwt.exceptions import InvalidKeyError
 from jwt.exceptions import PyJWTError
 
@@ -35,7 +35,7 @@ from fastapi_oidc.exceptions import TokenSpecificationError
 from fastapi_oidc.types import IDToken
 
 
-def _select_signing_key(keys: Any, id_token: str) -> Any:
+def _select_signing_key(keys: Any, id_token: str, algorithms: list[str]) -> Any:
     """Pick the key that should verify ``id_token`` out of ``keys``.
 
     ``keys`` is normally the JWKS document served by the auth server's
@@ -48,32 +48,47 @@ def _select_signing_key(keys: Any, id_token: str) -> Any:
     Args:
         keys: The JWKS document, or a single key understood by :func:`jwt.decode`.
         id_token: The compact-serialized JWT being verified.
+        algorithms: The signing algorithms the auth server advertises. The token's
+            ``alg`` header must be one of them.
 
     Returns:
         A key acceptable by :func:`jwt.decode`.
 
     Raises:
-        jwt.exceptions.PyJWTError: If no usable key matches the token.
+        jwt.exceptions.PyJWTError: If the token's ``alg`` is not allowed or no
+            usable key matches the token.
     """
     if not isinstance(keys, dict) or "keys" not in keys:
         return keys
 
-    jwk_set = PyJWKSet.from_dict(keys)
-    kid = jwt.get_unverified_header(id_token).get("kid")
+    header = jwt.get_unverified_header(id_token)
+    alg = header.get("alg")
+    if alg not in algorithms:
+        raise InvalidAlgorithmError("The specified alg value is not allowed")
 
+    jwks = keys["keys"]
+    if not isinstance(jwks, list):
+        raise InvalidKeyError("Invalid JWK Set: 'keys' is not a list")
+    candidates = [k for k in jwks if isinstance(k, dict)]
+
+    kid = header.get("kid")
     if kid is not None:
-        try:
-            return jwk_set[kid]
-        except KeyError as err:
-            raise InvalidKeyError(f"No signing key found for kid={kid!r}") from err
+        candidates = [k for k in candidates if k.get("kid") == kid]
+        if not candidates:
+            raise InvalidKeyError(f"No signing key found for kid={kid!r}")
+    elif len(candidates) != 1:
+        raise InvalidKeyError(
+            "Token has no 'kid' header and the JWKS does not contain exactly one key"
+        )
 
-    if len(jwk_set.keys) == 1:
-        key: PyJWK = jwk_set.keys[0]
-        return key
-
-    raise InvalidKeyError(
-        "Token has no 'kid' header and the JWKS contains more than one key"
-    )
+    jwk = candidates[0]
+    # PyJWT binds a PyJWK to one algorithm and refuses tokens whose header "alg"
+    # differs. A JWK that omits "alg" would be bound to a per-kty default (RS256
+    # for RSA), rejecting RS384/RS512/PS* tokens that python-jose accepted. Bind
+    # such keys to the token's alg instead: it was checked against the server's
+    # allow-list above, and a key/alg family mismatch (e.g. HS256 against an RSA
+    # key) still fails inside PyJWK.
+    return PyJWK(jwk, algorithm=jwk.get("alg") or alg)
 
 
 def get_auth(
@@ -152,13 +167,18 @@ def get_auth(
         algorithms = discover.signing_algos(OIDC_discoveries)
 
         try:
-            key = _select_signing_key(keys, id_token)
+            key = _select_signing_key(keys, id_token, algorithms)
             token = jwt.decode(
                 id_token,
                 key,
                 algorithms=algorithms,
                 audience=audience if audience else client_id,
                 issuer=expected_issuer,
+                # python-jose never compared "iat" to the clock, and PyJWT allows
+                # no leeway by default, so a provider whose clock runs a little
+                # ahead of ours would make every fresh token fail with 401.
+                # Keep the old contract; "exp" and "nbf" are still enforced.
+                options={"verify_iat": False},
             )
             return token_type.model_validate(token)
 

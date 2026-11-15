@@ -173,7 +173,7 @@ def mock_discovery_jwks(oidc_discovery, jwks):
 def make_token(private_key, config_w_aud, test_email):
     """Factory for RS256 tokens valid for ``config_w_aud``; accepts JWT header overrides."""
 
-    def _make(headers=None, **claims):
+    def _make(headers=None, algorithm="RS256", **claims):
         now = int(time.time())
         payload = {
             "aud": config_w_aud["audience"],
@@ -184,6 +184,25 @@ def make_token(private_key, config_w_aud, test_email):
             "iat": now,
             **claims,
         }
-        return jwt.encode(payload, private_key, algorithm="RS256", headers=headers)
+        return jwt.encode(payload, private_key, algorithm=algorithm, headers=headers)
+
+    return _make
+
+
+@pytest.fixture
+def make_discovery(oidc_discovery):
+    """Factory for discovery stubs with custom public keys and signing algorithms."""
+
+    def _make(keys, algorithms=None):
+        spec = dict(oidc_discovery)
+        if algorithms is not None:
+            spec["id_token_signing_alg_values_supported"] = list(algorithms)
+
+        class functions:
+            auth_server = lambda **_: spec
+            public_keys = lambda _: keys
+            signing_algos = lambda x: x["id_token_signing_alg_values_supported"]
+
+        return lambda *args, **kwargs: functions
 
     return _make
